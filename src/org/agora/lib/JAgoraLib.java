@@ -69,7 +69,7 @@ public class JAgoraLib {
    * @return
    */
   private boolean parseLoginResponse(BSONObject bson) {
-    boolean success = (boolean) bson.get("success");
+    boolean success = (Boolean) bson.get("success");
     if (!success)
       return false;
     // Success!
@@ -126,7 +126,7 @@ public class JAgoraLib {
   }
   
   private boolean parseLogoffResponse(BSONObject bson) {
-    return (int)bson.get("response") == JAgoraComms.SERVER_OK;
+    return (Integer)bson.get("response") == JAgoraComms.SERVER_OK;
   }
   
   /**
