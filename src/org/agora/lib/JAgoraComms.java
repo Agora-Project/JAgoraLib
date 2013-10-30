@@ -3,9 +3,6 @@ package org.agora.lib;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
 import org.agora.graph.Graph;
 import org.agora.graph.Node;
@@ -14,10 +11,9 @@ import org.agora.graph.NodeID;
 import org.agora.logging.Log;
 import org.bson.BSONDecoder;
 import org.bson.BSONEncoder;
-import org.bson.BSONObject;
+import org.bson.BasicBSONObject;
 import org.bson.BasicBSONDecoder;
 import org.bson.BasicBSONEncoder;
-import org.bson.BasicBSONObject;
 import org.bson.types.BasicBSONList;
 
 public class JAgoraComms {
@@ -33,26 +29,26 @@ public class JAgoraComms {
   
   
   // Serialisation
-  public static DateFormat DATE_FORMAT = new SimpleDateFormat();
+  //public static DateFormat DATE_FORMAT = new SimpleDateFormat(); //Deprecated?
   
   // ***********************
   // **** Communication ****
   // ***********************
-  public static BSONObject readBSONObjectFromSocket(Socket s) {
+  public static BasicBSONObject readBSONObjectFromSocket(Socket s) {
     try {
       InputStream is = s.getInputStream();
       BSONDecoder bdec = new BasicBSONDecoder();
-      return bdec.readObject(is);
+      return (BasicBSONObject)bdec.readObject(is);
     } catch (IOException e) {
       Log.error("Could not read BSON object from socket " + s);
       Log.error(e.getMessage());
     }
     
-    return null;
+    return null; 
   }
   
   
-  public static boolean writeBSONObjectToSocket(Socket s, BSONObject bson) {
+  public static boolean writeBSONObjectToSocket(Socket s, BasicBSONObject bson) {
     BSONEncoder benc = new BasicBSONEncoder();
     byte[] b = benc.encode(bson);
     
@@ -72,15 +68,15 @@ public class JAgoraComms {
  // **** Serialisation ****
  // ***********************
   
-  public static BSONObject BSONiseNodeID(NodeID nodeID) {
-    BSONObject bson = new BasicBSONObject();
+  public static BasicBSONObject BSONiseNodeID(NodeID nodeID) {
+    BasicBSONObject bson = new BasicBSONObject();
     bson.put("source", nodeID.getSource());
     bson.put("id", nodeID.getLocalID());
     return bson;
   }
   
-  public static BSONObject BSONiseNode(Node node) {
-    BSONObject bson = new BasicBSONObject();
+  public static BasicBSONObject BSONiseNode(Node node) {
+    BasicBSONObject bson = new BasicBSONObject();
     bson.put("id", BSONiseNodeID(node.getID()));
     bson.put("posterName", node.getPosterName());
     bson.put("posterID", node.getPosterID());
@@ -90,15 +86,15 @@ public class JAgoraComms {
     return bson;
   }
   
-  public static BSONObject BSONiseEdge(Edge edge) {
-    BSONObject bson = new BasicBSONObject();
+  public static BasicBSONObject BSONiseEdge(Edge edge) {
+    BasicBSONObject bson = new BasicBSONObject();
     bson.put("origin", BSONiseNodeID(edge.getOrigin().getID()));
     bson.put("target", BSONiseNodeID(edge.getTarget().getID()));
     return bson;
   }
   
-  public static BSONObject BSONiseGraph(Graph graph) {
-    BSONObject bsonGraph = new BasicBSONObject();
+  public static BasicBSONObject BSONiseGraph(Graph graph) {
+    BasicBSONObject bsonGraph = new BasicBSONObject();
     
     // Add nodes.
     BasicBSONList bsonNodeList = new BasicBSONList();
@@ -126,33 +122,29 @@ public class JAgoraComms {
  *************************
  */
 
-  public static NodeID deBSONiseNodeID(BSONObject bsonNodeID) {
+  public static NodeID deBSONiseNodeID(BasicBSONObject bsonNodeID) {
     return new NodeID(
-        (String)bsonNodeID.get("source"),
-        (Integer)bsonNodeID.get("id")
+        bsonNodeID.getString("source"),
+        bsonNodeID.getInt("id")
     );
   }
   
-  public static Node deBSONiseNode(BSONObject bsonNode) {
-    NodeID nodeID = deBSONiseNodeID((BSONObject)bsonNode.get("id"));
+  public static Node deBSONiseNode(BasicBSONObject bsonNode) {
+    NodeID nodeID = deBSONiseNodeID((BasicBSONObject)bsonNode.get("id"));
     Node node = new Node(nodeID);
     
-    node.setPosterID((Integer)bsonNode.get("id"));
-    node.setPosterName((String)bsonNode.get("posterName"));
-    try {
-      node.setDate(DATE_FORMAT.parse((String)bsonNode.get("date")));
-    } catch (ParseException e) {
-      Log.error("Could not parse date: " + ((String) bsonNode.get("date")));
-    }
-    node.setAcceptability((Integer)bsonNode.get("acceptability"));
-    node.setThreadID((Integer)bsonNode.get("threadID"));
+    node.setPosterID(bsonNode.getInt("id"));
+    node.setPosterName(bsonNode.getString("posterName"));
+    node.setDate(bsonNode.getDate("date"));
+    node.setAcceptability(bsonNode.getInt("acceptability"));
+    node.setThreadID(bsonNode.getInt("threadID"));
 
     return node;
   }
   
-  public static Edge deBSONiseEdge(BSONObject bsonEdge, Graph graph) {
-    NodeID originID = deBSONiseNodeID((BSONObject)bsonEdge.get("origin"));
-    NodeID targetID = deBSONiseNodeID((BSONObject)bsonEdge.get("target"));
+  public static Edge deBSONiseEdge(BasicBSONObject bsonEdge, Graph graph) {
+    NodeID originID = deBSONiseNodeID((BasicBSONObject)bsonEdge.get("origin"));
+    NodeID targetID = deBSONiseNodeID((BasicBSONObject)bsonEdge.get("target"));
 
 
     // Check whether the origin nodes are or are not in the graph.
@@ -170,15 +162,15 @@ public class JAgoraComms {
     return new Edge(originNode, targetNode);
   }
   
-  public static Graph deBSONiseGraph(BSONObject bsonGraph) {
+  public static Graph deBSONiseGraph(BasicBSONObject bsonGraph) {
     Graph graph = new Graph();
     BasicBSONList nodes = (BasicBSONList)bsonGraph.get("nodes");
     for (Object n: nodes)
-      graph.addNode(deBSONiseNode((BSONObject) n));
+      graph.addNode(deBSONiseNode((BasicBSONObject) n));
 
     BasicBSONList edges = (BasicBSONList)bsonGraph.get("edges");
     for (Object e : edges)
-      graph.addEdge(deBSONiseEdge((BSONObject) e, graph));
+      graph.addEdge(deBSONiseEdge((BasicBSONObject) e, graph));
 
     return graph;
   }

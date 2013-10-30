@@ -5,10 +5,9 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 import org.agora.logging.Log;
-import org.bson.BSONObject;
 import org.bson.BasicBSONObject;
 
-public class JAgoraLib {  
+public class JAgoraLib implements IJAgoraLib {  
   
   protected String sessionID;
   protected String hostname;
@@ -54,8 +53,8 @@ public class JAgoraLib {
    * @param password
    * @return
    */
-  private BSONObject constructLoginRequest(String user, String password) {
-    BSONObject bson = new BasicBSONObject();
+  private BasicBSONObject constructLoginRequest(String user, String password) {
+    BasicBSONObject bson = new BasicBSONObject();
     bson.put("action", JAgoraComms.LOGIN_ACTION);
     bson.put("user", user);
     bson.put("pass", password);
@@ -68,7 +67,7 @@ public class JAgoraLib {
    * @param bson
    * @return
    */
-  private boolean parseLoginResponse(BSONObject bson) {
+  private boolean parseLoginResponse(BasicBSONObject bson) {
     boolean success = (Boolean) bson.get("success");
     if (!success)
       return false;
@@ -95,7 +94,7 @@ public class JAgoraLib {
       return false;
     }
 
-    BSONObject response = JAgoraComms.readBSONObjectFromSocket(s);
+    BasicBSONObject response = JAgoraComms.readBSONObjectFromSocket(s);
     if (response == null) {
       Log.error("[JAgoraLib] Could not read login response.");
       return false;
@@ -118,14 +117,14 @@ public class JAgoraLib {
   
   
   
-  private BSONObject constructLogoffRequest() {
-    BSONObject bson = new BasicBSONObject();
+  private BasicBSONObject constructLogoffRequest() {
+    BasicBSONObject bson = new BasicBSONObject();
     bson.put("action", JAgoraComms.LOGOUT_ACTION);
     bson.put("session", sessionID);
     return bson;
   }
   
-  private boolean parseLogoffResponse(BSONObject bson) {
+  private boolean parseLogoffResponse(BasicBSONObject bson) {
     return (Integer)bson.get("response") == JAgoraComms.SERVER_OK;
   }
   
@@ -150,7 +149,7 @@ public class JAgoraLib {
       return false;
     }
     
-    BSONObject response = JAgoraComms.readBSONObjectFromSocket(s);
+    BasicBSONObject response = JAgoraComms.readBSONObjectFromSocket(s);
     if (response != null) {
       Log.error("... in JAgoraLib.close().");
       return false;
