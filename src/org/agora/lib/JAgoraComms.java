@@ -17,16 +17,6 @@ import org.bson.BasicBSONEncoder;
 import org.bson.types.BasicBSONList;
 
 public class JAgoraComms {
-
-  // Communication codes!
-  // Private constants for constructing messages.
-  public final static int LOGIN_ACTION = 0;
-  public final static int LOGOUT_ACTION = 1;
-  
-  // Private constants for deconstructing server messages
-  public final static int SERVER_OK = 0;
-  public final static int SERVER_FAIL = 1;
-  
   
   // Serialisation
   //public static DateFormat DATE_FORMAT = new SimpleDateFormat(); //Deprecated?

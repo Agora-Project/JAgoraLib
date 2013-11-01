@@ -9,15 +9,20 @@ import org.bson.BasicBSONObject;
 
 public class JAgoraLib implements IJAgoraLib {  
   
+  protected int userID;
   protected String sessionID;
   protected String hostname;
   protected int port;
-
-  public JAgoraLib() {
+  /**
+   * @param hostname The Agora server location.
+   * @param port The port on which the server is listening.
+   */
+  public JAgoraLib(String hostname, int port) {
+    userID = -1;
     sessionID = null;
+    this.hostname = hostname;
+    this.port = port;
   }
-  
-  
   
   private Socket openConnection() {
     return openConnection(hostname, port);
@@ -28,11 +33,9 @@ public class JAgoraLib implements IJAgoraLib {
     try {
       s = new Socket(hostname, port);
     } catch (UnknownHostException e) {
-      Log.error("[JAgoraLib] Could not identify host.");
-      Log.error(e.getMessage());
+      Log.error("[JAgoraLib] Could not identify host " +"("+e.getMessage()+")");
     } catch (IOException e) {
-      Log.error("[JAgoraLib] Error opening connection to " + hostname + ":"+port);
-      Log.error(e.getMessage());
+      Log.error("[JAgoraLib] Error opening connection to " + hostname + ":"+port +" ("+e.getMessage()+")");
     }
     return s;
   }
@@ -42,7 +45,7 @@ public class JAgoraLib implements IJAgoraLib {
       s.close();
       return true;
     } catch (IOException e) {
-      Log.error("[JAgoraLib] Could not close connection " + s);
+      Log.error("[JAgoraLib] Could not close connection " + s + " ("+e.getMessage()+")");
     }
     return false;
   }
@@ -55,7 +58,7 @@ public class JAgoraLib implements IJAgoraLib {
    */
   private BasicBSONObject constructLoginRequest(String user, String password) {
     BasicBSONObject bson = new BasicBSONObject();
-    bson.put("action", JAgoraComms.LOGIN_ACTION);
+    bson.put("action", IJAgoraLib.LOGIN_ACTION);
     bson.put("user", user);
     bson.put("pass", password);
     return bson;
@@ -68,25 +71,30 @@ public class JAgoraLib implements IJAgoraLib {
    * @return
    */
   private boolean parseLoginResponse(BasicBSONObject bson) {
-    boolean success = (Boolean) bson.get("success");
-    if (!success)
+    int response = bson.getInt("response");
+    if (response == IJAgoraLib.SERVER_FAIL)
       return false;
+    
     // Success!
-    sessionID = (String)bson.get("sessionID");
-    return sessionID != null;
+    sessionID = bson.getString("session");
+    userID = bson.getInt("id");
+    return true;
   }
   
   /**
    * Performs a login with an Agora server.
-   * @param hostname The Agora server.
-   * @param port The port on which the server is listening.
    * @param user
    * @param password
    * @return
    */
-  public boolean connect(String hostname, int port, String user, String password) {
+  public boolean connect(String user, String password) {
     // TODO: Can't differentiate between what happened. Make return int?
     Socket s = openConnection(hostname, port);
+    if (s == null) {
+      Log.error("[JAgoraLib] Could not connect because socket could not be opened.");
+      return false;
+    }
+    
     boolean success = JAgoraComms.writeBSONObjectToSocket(s,
         constructLoginRequest(user, password));
     if (!success) {
@@ -119,13 +127,13 @@ public class JAgoraLib implements IJAgoraLib {
   
   private BasicBSONObject constructLogoffRequest() {
     BasicBSONObject bson = new BasicBSONObject();
-    bson.put("action", JAgoraComms.LOGOUT_ACTION);
+    bson.put("action", IJAgoraLib.LOGOUT_ACTION);
     bson.put("session", sessionID);
     return bson;
   }
   
   private boolean parseLogoffResponse(BasicBSONObject bson) {
-    return (Integer)bson.get("response") == JAgoraComms.SERVER_OK;
+    return (Integer)bson.get("response") == IJAgoraLib.SERVER_OK;
   }
   
   /**

@@ -4,6 +4,6 @@ import java.io.PrintWriter;
 
 public class ConsoleLog extends WriterLog {
   public ConsoleLog() {
-    super(new PrintWriter(System.out), new PrintWriter(System.err), new PrintWriter(System.out));
+    super(new PrintWriter(System.out, true), new PrintWriter(System.err, true), new PrintWriter(System.out, true));
   }
 }
