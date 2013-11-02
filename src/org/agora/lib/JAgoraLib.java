@@ -58,9 +58,9 @@ public class JAgoraLib implements IJAgoraLib {
    */
   private BasicBSONObject constructLoginRequest(String user, String password) {
     BasicBSONObject bson = new BasicBSONObject();
-    bson.put("action", IJAgoraLib.LOGIN_ACTION);
-    bson.put("user", user);
-    bson.put("pass", password);
+    bson.put(ACTION_FIELD, IJAgoraLib.LOGIN_ACTION);
+    bson.put(USER_FIELD, user);
+    bson.put(PASSWORD_FIELD, password);
     return bson;
   }
   
@@ -71,13 +71,15 @@ public class JAgoraLib implements IJAgoraLib {
    * @return
    */
   private boolean parseLoginResponse(BasicBSONObject bson) {
-    int response = bson.getInt("response");
-    if (response == IJAgoraLib.SERVER_FAIL)
+    int response = bson.getInt(RESPONSE_FIELD);
+    if (response == SERVER_FAIL) {
+      Log.error("[JAgoraLib] Could not login (" + bson.getString(REASON_FIELD) + ")");
       return false;
+    }
     
     // Success!
-    sessionID = bson.getString("session");
-    userID = bson.getInt("id");
+    sessionID = bson.getString(SESSION_ID_FIELD);
+    userID = bson.getInt(USER_ID_FIELD);
     return true;
   }
   
@@ -87,7 +89,7 @@ public class JAgoraLib implements IJAgoraLib {
    * @param password
    * @return
    */
-  public boolean connect(String user, String password) {
+  public boolean login(String user, String password) {
     // TODO: Can't differentiate between what happened. Make return int?
     Socket s = openConnection(hostname, port);
     if (s == null) {
@@ -123,49 +125,66 @@ public class JAgoraLib implements IJAgoraLib {
   }
   
   
-  
-  
-  private BasicBSONObject constructLogoffRequest() {
-    BasicBSONObject bson = new BasicBSONObject();
-    bson.put("action", IJAgoraLib.LOGOUT_ACTION);
-    bson.put("session", sessionID);
-    return bson;
+  /**
+   * Constructs an empty response based on this Lib's user ID and session ID.
+   * @return Basic, empty response BSON object.
+   */
+  private BasicBSONObject constructBasicResponse() {
+    BasicBSONObject response = new BasicBSONObject();
+    response.put(SESSION_ID_FIELD, sessionID);
+    response.put(USER_ID_FIELD, userID);
+    return response;
   }
   
-  private boolean parseLogoffResponse(BasicBSONObject bson) {
-    return (Integer)bson.get("response") == IJAgoraLib.SERVER_OK;
+  private BasicBSONObject constructLogoutRequest() {
+    BasicBSONObject bsonResponse = constructBasicResponse();
+    bsonResponse.put(ACTION_FIELD, LOGOUT_ACTION);
+    return bsonResponse;
+  }
+  
+  private boolean parseLogoutResponse(BasicBSONObject bson) {
+    int response = bson.getInt(RESPONSE_FIELD);
+    if (response == SERVER_FAIL) {
+      Log.error("[JAgoraLib] Could not logout (" + bson.getString("reason") + ")");
+      return false;
+    }
+    
+    userID = -1;
+    sessionID = null;
+    return true;
   }
   
   /**
    * Closes the current Agora session.
    * @return
    */
-  public boolean close() {
+  public boolean logout() {
+    // TODO: fix the error messages.
     if (!isConnected()) {
       return false;
     }
     
     Socket s = openConnection();
-    if (s != null) {
+    if (s == null) {
       Log.error("... in JAgoraLib.parseLogoffResponse.");
       return false;
     }
     
-    boolean success = JAgoraComms.writeBSONObjectToSocket(s, constructLogoffRequest());
+    boolean success = JAgoraComms.writeBSONObjectToSocket(s, constructLogoutRequest());
     if (!success) {
-      Log.error("... in JAgoraLib.close().");
+      Log.error("... in writing ");
       return false;
     }
     
     BasicBSONObject response = JAgoraComms.readBSONObjectFromSocket(s);
-    if (response != null) {
-      Log.error("... in JAgoraLib.close().");
+    if (response == null) {
+      Log.error("... in reading");
       return false;
     }
     
-    success = parseLogoffResponse(response);
+    success = parseLogoutResponse(response);
     if(!success){
-      Log.error("... in JAgoraLib.close().");
+      Log.error("... in JAgoraLib.things");
       return false;
     }
     

@@ -12,6 +12,7 @@ public class TextClient {
   
   public TextClient(){
     running = false;
+    lib = new JAgoraLib("127.0.0.1", Options.AGORA_PORT);
   }
   
   public void run() {
@@ -45,7 +46,7 @@ public class TextClient {
   
   public void login(String[] tokens) {
     System.out.print("Logging in...");
-    boolean result = lib.connect(tokens[1], tokens[2]);
+    boolean result = lib.login(tokens[1], tokens[2]);
     if (result){
       System.out.println("Connected!");
     } else {
@@ -55,6 +56,10 @@ public class TextClient {
   
   public void logout(String[] tokens) {
     System.out.println("Logging out...");
+    if(!lib.logout())
+      System.out.println("Failed!");
+    else
+      System.out.println("Logged out!");
   }
   
   public static void main(String[] args) {
