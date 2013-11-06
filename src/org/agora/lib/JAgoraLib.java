@@ -4,15 +4,22 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import org.agora.graph.JAgoraEdge;
+import org.agora.graph.JAgoraGraph;
+import org.agora.graph.JAgoraNode;
 import org.agora.logging.Log;
 import org.bson.BasicBSONObject;
 
-public class JAgoraLib implements IJAgoraLib {  
+public class JAgoraLib<G extends JAgoraGraph, N extends JAgoraNode, E extends JAgoraEdge> implements IJAgoraLib<G, N, E> {  
   
   protected int userID;
   protected String sessionID;
   protected String hostname;
   protected int port;
+  
+  protected BSONGraphEncoder encoder;
+  protected BSONGraphDecoder<G, N, E> decoder;
+  
   /**
    * @param hostname The Agora server location.
    * @param port The port on which the server is listening.
@@ -22,13 +29,19 @@ public class JAgoraLib implements IJAgoraLib {
     sessionID = null;
     this.hostname = hostname;
     this.port = port;
+    
+    encoder = new BSONGraphEncoder();
+    decoder = new BSONGraphDecoder<G, N, E>();
   }
   
-  private Socket openConnection() {
+  public void setEncoder(BSONGraphEncoder encoder) { this.encoder = encoder; }
+  public void setDecoder(BSONGraphDecoder<G, N, E> decoder) { this.decoder = decoder; }
+  
+  protected Socket openConnection() {
     return openConnection(hostname, port);
   }
   
-  private Socket openConnection(String hostname, int port) {
+  protected Socket openConnection(String hostname, int port) {
     Socket s = null;
     try {
       s = new Socket(hostname, port);
@@ -40,7 +53,7 @@ public class JAgoraLib implements IJAgoraLib {
     return s;
   }
   
-  private boolean closeConnection(Socket s) {
+  protected boolean closeConnection(Socket s) {
     try {
       s.close();
       return true;
@@ -56,7 +69,7 @@ public class JAgoraLib implements IJAgoraLib {
    * @param password
    * @return
    */
-  private BasicBSONObject constructLoginRequest(String user, String password) {
+  protected BasicBSONObject constructLoginRequest(String user, String password) {
     BasicBSONObject bson = new BasicBSONObject();
     bson.put(ACTION_FIELD, IJAgoraLib.LOGIN_ACTION);
     bson.put(USER_FIELD, user);
@@ -70,7 +83,7 @@ public class JAgoraLib implements IJAgoraLib {
    * @param bson
    * @return
    */
-  private boolean parseLoginResponse(BasicBSONObject bson) {
+  protected boolean parseLoginResponse(BasicBSONObject bson) {
     int response = bson.getInt(RESPONSE_FIELD);
     if (response == SERVER_FAIL) {
       Log.error("[JAgoraLib] Could not login (" + bson.getString(REASON_FIELD) + ")");
@@ -129,23 +142,25 @@ public class JAgoraLib implements IJAgoraLib {
    * Constructs an empty response based on this Lib's user ID and session ID.
    * @return Basic, empty response BSON object.
    */
-  private BasicBSONObject constructBasicResponse() {
-    BasicBSONObject response = new BasicBSONObject();
-    response.put(SESSION_ID_FIELD, sessionID);
-    response.put(USER_ID_FIELD, userID);
-    return response;
+  protected BasicBSONObject constructBasicRequest() {
+    if (!isConnected())
+      return null;
+    BasicBSONObject request = new BasicBSONObject();
+    request.put(SESSION_ID_FIELD, sessionID);
+    request.put(USER_ID_FIELD, userID);
+    return request;
   }
   
-  private BasicBSONObject constructLogoutRequest() {
-    BasicBSONObject bsonResponse = constructBasicResponse();
-    bsonResponse.put(ACTION_FIELD, LOGOUT_ACTION);
-    return bsonResponse;
+  protected BasicBSONObject constructLogoutRequest() {
+    BasicBSONObject bsonRequest = constructBasicRequest();
+    bsonRequest.put(ACTION_FIELD, LOGOUT_ACTION);
+    return bsonRequest;
   }
   
-  private boolean parseLogoutResponse(BasicBSONObject bson) {
+  protected boolean parseLogoutResponse(BasicBSONObject bson) {
     int response = bson.getInt(RESPONSE_FIELD);
     if (response == SERVER_FAIL) {
-      Log.error("[JAgoraLib] Could not logout (" + bson.getString("reason") + ")");
+      Log.error("[JAgoraLib] Could not logout (" + bson.getString(REASON_FIELD) + ")");
       return false;
     }
     
@@ -159,32 +174,32 @@ public class JAgoraLib implements IJAgoraLib {
    * @return
    */
   public boolean logout() {
-    // TODO: fix the error messages.
     if (!isConnected()) {
+      Log.error("[JAgoraLib] Logging out but isn't connected.");
       return false;
     }
     
     Socket s = openConnection();
     if (s == null) {
-      Log.error("... in JAgoraLib.parseLogoffResponse.");
+      Log.error("[JAgoraLib] Could not open connection for logout.");
       return false;
     }
     
     boolean success = JAgoraComms.writeBSONObjectToSocket(s, constructLogoutRequest());
     if (!success) {
-      Log.error("... in writing ");
+      Log.error("[JAgoraLib] Could not write logout query.");
       return false;
     }
     
     BasicBSONObject response = JAgoraComms.readBSONObjectFromSocket(s);
     if (response == null) {
-      Log.error("... in reading");
+      Log.error("[JAgoraLib] Could not read logout response.");
       return false;
     }
     
     success = parseLogoutResponse(response);
     if(!success){
-      Log.error("... in JAgoraLib.things");
+      Log.error("[JAgoraLib] Could not parse logout response.");
       return false;
     }
     
@@ -196,5 +211,61 @@ public class JAgoraLib implements IJAgoraLib {
   
   public boolean isConnected() {
     return sessionID != null;
+  }
+
+  
+  
+  
+  protected BasicBSONObject constructQueryByThreadIDRequest(int threadID) {
+    BasicBSONObject bsonRequest = constructBasicRequest();
+    bsonRequest.put(ACTION_FIELD, QUERY_BY_THREAD_ID_ACTION);
+    bsonRequest.put(QUERY_ID_FIELD, threadID);
+    return bsonRequest;
+  }
+  
+  protected G parseQueryByThreadIDResponse(BasicBSONObject bson) {
+    int response = bson.getInt(RESPONSE_FIELD);
+    if (response == SERVER_FAIL) {
+      Log.error("[JAgoraLib] Could not get thread (" + bson.getString(REASON_FIELD) + ")");
+      return null;
+    }
+    
+    G g = decoder.deBSONiseGraph((BasicBSONObject)bson.get(GRAPH_FIELD));
+    return g;
+  }
+  
+  
+  @Override
+  public G getThreadByID(int threadID) {
+    if (!isConnected()) {
+      Log.error("[JAgoraLib] Querying but not connected.");
+      return null;
+    }
+    
+    Socket s = openConnection();
+    if (s == null) {
+      Log.error("[JAgoraLib] Could not open connection for thread query.");
+      return null;
+    }
+    
+    boolean success = JAgoraComms.writeBSONObjectToSocket(s, constructLogoutRequest());
+    if (!success) {
+      Log.error("[JAgoraLib] Could not write logout query.");
+      return null;
+    }
+    
+    BasicBSONObject response = JAgoraComms.readBSONObjectFromSocket(s);
+    if (response == null) {
+      Log.error("[JAgoraLib] Could not read logout response.");
+      return null;
+    }
+    
+    success = parseLogoutResponse(response);
+    if(!success){
+      Log.error("[JAgoraLib] Could not parse logout response.");
+      return null;
+    }
+    
+    return null;
   }
 }
