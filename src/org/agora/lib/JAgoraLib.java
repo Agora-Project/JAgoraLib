@@ -151,6 +151,9 @@ public class JAgoraLib<G extends JAgoraGraph, N extends JAgoraNode, E extends JA
     return request;
   }
   
+  
+  
+  
   protected BasicBSONObject constructLogoutRequest() {
     BasicBSONObject bsonRequest = constructBasicRequest();
     bsonRequest.put(ACTION_FIELD, LOGOUT_ACTION);
@@ -216,7 +219,9 @@ public class JAgoraLib<G extends JAgoraGraph, N extends JAgoraNode, E extends JA
   
   
   
-  protected BasicBSONObject constructQueryByThreadIDRequest(int threadID) {
+  
+  
+  protected BasicBSONObject constructGetThreadByIDRequest(int threadID) {
     BasicBSONObject bsonRequest = constructBasicRequest();
     bsonRequest.put(ACTION_FIELD, QUERY_BY_THREAD_ID_ACTION);
     bsonRequest.put(QUERY_ID_FIELD, threadID);
@@ -248,24 +253,26 @@ public class JAgoraLib<G extends JAgoraGraph, N extends JAgoraNode, E extends JA
       return null;
     }
     
-    boolean success = JAgoraComms.writeBSONObjectToSocket(s, constructLogoutRequest());
+    boolean success = JAgoraComms.writeBSONObjectToSocket(s, constructGetThreadByIDRequest(threadID));
     if (!success) {
-      Log.error("[JAgoraLib] Could not write logout query.");
+      Log.error("[JAgoraLib] Could not write getThreadByID query.");
       return null;
     }
     
     BasicBSONObject response = JAgoraComms.readBSONObjectFromSocket(s);
     if (response == null) {
-      Log.error("[JAgoraLib] Could not read logout response.");
+      Log.error("[JAgoraLib] Could not read getThreadByID response.");
       return null;
     }
     
-    success = parseLogoutResponse(response);
+    G graph = parseQueryByThreadIDResponse(response);
+    
+    success = graph == null;
     if(!success){
-      Log.error("[JAgoraLib] Could not parse logout response.");
+      Log.error("[JAgoraLib] Could not parse getThreadByID response.");
       return null;
     }
     
-    return null;
+    return graph;
   }
 }

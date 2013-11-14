@@ -22,9 +22,9 @@ public class BSONGraphEncoder {
     bson.put("posterName", node.getPosterName());
     bson.put("posterID", node.getPosterID());
     bson.put("date", node.getDate().toString());
-    bson.put("acceptability", node.getAcceptability());
+    bson.put("acceptability", node.getAcceptability().doubleValue());
     bson.put("threadID", node.getThreadID());
-    // TODO: content!
+    bson.put("content", node.getContent());
     return bson;
   }
 
