@@ -5,42 +5,19 @@ import org.agora.graph.JAgoraGraph;
 import org.agora.graph.JAgoraNode;
 import org.agora.graph.JAgoraEdge;
 import org.agora.graph.JAgoraNodeID;
-import org.agora.graph.factories.IEdgeFactory;
-import org.agora.graph.factories.IGraphFactory;
-import org.agora.graph.factories.INodeFactory;
-import org.agora.graph.factories.JAgoraEdgeFactory;
-import org.agora.graph.factories.JAgoraGraphFactory;
-import org.agora.graph.factories.JAgoraNodeFactory;
 import org.bson.BasicBSONObject;
 import org.bson.types.BasicBSONList;
 
-public class BSONGraphDecoder<G extends JAgoraGraph, N extends JAgoraNode, E extends JAgoraEdge> {
-  protected IGraphFactory<G> graphFactory;
-  protected INodeFactory<N> nodeFactory;
-  protected IEdgeFactory<E> edgeFactory;
-
-  public BSONGraphDecoder() {
-    // TODO: How do we fix this? HACKED. Probably doesn't work.
-    graphFactory = (IGraphFactory<G>) new JAgoraGraphFactory();
-    nodeFactory = (INodeFactory<N>) new JAgoraNodeFactory();
-    edgeFactory = (IEdgeFactory<E>) new JAgoraEdgeFactory();
-  }
-  
-  public BSONGraphDecoder(IGraphFactory<G> gf, INodeFactory<N> nf, IEdgeFactory<E> ef) {
-    graphFactory = gf;
-    nodeFactory = nf;
-    edgeFactory = ef;
-  }
+public class BSONGraphDecoder {
 
   public JAgoraNodeID deBSONiseNodeID(BasicBSONObject bsonNodeID) {
     return new JAgoraNodeID(bsonNodeID.getString("source"),
         bsonNodeID.getInt("id"));
   }
 
-  public N deBSONiseNode(BasicBSONObject bsonNode) {
+  public JAgoraNode deBSONiseNode(BasicBSONObject bsonNode) {
     JAgoraNodeID nodeID = deBSONiseNodeID((BasicBSONObject) bsonNode.get("id"));
-    N node = nodeFactory.produce();
-    node.construct(nodeID);
+    JAgoraNode node = new JAgoraNode(nodeID);
 
     node.setPosterID(bsonNode.getInt("id"));
     node.setPosterName(bsonNode.getString("posterName"));
@@ -52,39 +29,34 @@ public class BSONGraphDecoder<G extends JAgoraGraph, N extends JAgoraNode, E ext
     return node;
   }
 
-  @SuppressWarnings("unchecked")
-  public E deBSONiseEdge(BasicBSONObject bsonEdge, G graph) {
+  public JAgoraEdge deBSONiseEdge(BasicBSONObject bsonEdge, JAgoraGraph graph) {
     JAgoraNodeID originID = deBSONiseNodeID((BasicBSONObject) bsonEdge.get("origin"));
     JAgoraNodeID targetID = deBSONiseNodeID((BasicBSONObject) bsonEdge.get("target"));
 
     // Check whether the origin nodes are or are not in the graph.
     // If they are not, simply add a node containing only an ID.
     // That should be enough to ask for it in case it's interesting.
-    N originNode = null;
-    N targetNode = null;
+    JAgoraNode originNode = null;
+    JAgoraNode targetNode = null;
 
     if (graph.isInGraph(originID))
-      originNode = (N) graph.getNodeByID(originID);
-    else {
-      originNode = nodeFactory.produce();
-      originNode.construct(originID);
-    }
+      originNode = graph.getNodeByID(originID);
+    else
+      originNode = new JAgoraNode(originID);
 
     if (graph.isInGraph(targetID))
-      targetNode = (N) graph.getNodeByID(targetID);
-    else {
-      targetNode = nodeFactory.produce();
-      targetNode.construct(targetID);
-    }
+      targetNode = graph.getNodeByID(targetID);
+    else
+      targetNode = new JAgoraNode(targetID);
 
-    E e = edgeFactory.produce();
+    JAgoraEdge e = new JAgoraEdge();
     e.construct(originNode, targetNode);
 
     return e;
   }
 
-  public G deBSONiseGraph(BasicBSONObject bsonGraph) {
-    G graph = graphFactory.produce();
+  public JAgoraGraph deBSONiseGraph(BasicBSONObject bsonGraph) {
+    JAgoraGraph graph = new JAgoraGraph();
     BasicBSONList nodes = (BasicBSONList) bsonGraph.get("nodes");
     for (Object n : nodes)
       graph.addNode(deBSONiseNode((BasicBSONObject) n));
