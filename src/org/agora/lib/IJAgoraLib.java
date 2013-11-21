@@ -1,7 +1,6 @@
 package org.agora.lib;
 
 import org.agora.graph.JAgoraGraph;
-import org.agora.graph.JAgoraNode;
 import org.bson.BasicBSONObject;
 
 public interface IJAgoraLib{
@@ -23,6 +22,9 @@ public interface IJAgoraLib{
   public final static String GRAPH_FIELD = "g";
   public final static String CONTENT_FIELD = "c";
   public final static String ARGUMENT_FIELD = "arg";
+  
+  // Content data
+  public final static String TEXT_FIELD = "txt";
   
   // Private constants for deconstructing server messages
   public final static int SERVER_OK = 0;
@@ -52,7 +54,7 @@ public interface IJAgoraLib{
   
   
   
-  JAgoraNode addArgument(BasicBSONObject content, int threadID);  
+  boolean addArgument(BasicBSONObject content, int threadID);  
   
   /**
    * Connects to the database and obtains the graph associated

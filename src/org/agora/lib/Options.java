@@ -5,6 +5,7 @@ public class Options {
   // Network options
   public static int AGORA_PORT = 1597;
   
+  
   // Logging options
   public static boolean LOG_MESSAGES = true;
   public static boolean DEBUG_MESSAGES = true;

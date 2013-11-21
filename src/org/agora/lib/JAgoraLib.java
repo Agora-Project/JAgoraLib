@@ -5,7 +5,6 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 import org.agora.graph.JAgoraGraph;
-import org.agora.graph.JAgoraNode;
 import org.agora.logging.Log;
 import org.bson.BasicBSONObject;
 
@@ -226,52 +225,49 @@ public class JAgoraLib implements IJAgoraLib {
     return bsonRequest;
   }
   
-  protected JAgoraNode parseAddArgumentResponse(BasicBSONObject bson) {
+  protected boolean parseAddArgumentResponse(BasicBSONObject bson) {
     int response = bson.getInt(RESPONSE_FIELD);
     if (response == SERVER_FAIL) {
       Log.error("[JAgoraLib] Could not add argument (" + bson.getString(REASON_FIELD) + ")");
-      return null;
+      return false;
     }
     
-    JAgoraNode n = decoder.deBSONiseNode((BasicBSONObject)bson.get(ARGUMENT_FIELD));
-    return n;
+    return true;
   }
   
   
   @Override
-  public JAgoraNode addArgument(BasicBSONObject content, int threadID) {
+  public boolean addArgument(BasicBSONObject content, int threadID) {
     if (!isConnected()) {
       Log.error("[JAgoraLib] Querying but not connected.");
-      return null;
+      return false;
     }
     
     Socket s = openConnection();
     if (s == null) {
       Log.error("[JAgoraLib] Could not open connection for thread query.");
-      return null;
+      return false;
     }
     
     boolean success = JAgoraComms.writeBSONObjectToSocket(s, constructaAddArgumentRequest(content, threadID));
     if (!success) {
       Log.error("[JAgoraLib] Could not write addArgument query.");
-      return null;
+      return false;
     }
     
     BasicBSONObject response = JAgoraComms.readBSONObjectFromSocket(s);
     if (response == null) {
       Log.error("[JAgoraLib] Could not read addArgument response.");
-      return null;
+      return false;
     }
     
-    JAgoraNode node = parseAddArgumentResponse(response);
-    
-    success = node == null;
+    success = parseAddArgumentResponse(response);
     if(!success){
       Log.error("[JAgoraLib] Could not parse addArgument response.");
-      return null;
+      return false;
     }
     
-    return node;
+    return true;
   }
   
   

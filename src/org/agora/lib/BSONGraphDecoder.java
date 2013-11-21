@@ -1,6 +1,8 @@
 package org.agora.lib;
 
 import java.math.BigDecimal;
+import java.util.Date;
+
 import org.agora.graph.JAgoraGraph;
 import org.agora.graph.JAgoraNode;
 import org.agora.graph.JAgoraEdge;
@@ -21,7 +23,7 @@ public class BSONGraphDecoder {
 
     node.setPosterID(bsonNode.getInt("id"));
     node.setPosterName(bsonNode.getString("posterName"));
-    node.setDate(bsonNode.getDate("date"));
+    node.setDate(new Date(bsonNode.getLong("date")));
     node.setAcceptability(new BigDecimal(bsonNode.getDouble("acceptability")));
     node.setThreadID(bsonNode.getInt("threadID"));
     node.setContent((BasicBSONObject)bsonNode.get("content"));

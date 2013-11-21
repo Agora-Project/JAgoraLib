@@ -21,7 +21,7 @@ public class BSONGraphEncoder {
     bson.put("id", BSONiseNodeID(node.getID()));
     bson.put("posterName", node.getPosterName());
     bson.put("posterID", node.getPosterID());
-    bson.put("date", node.getDate().toString());
+    bson.put("date", node.getDate().getTime());
     bson.put("acceptability", node.getAcceptability().doubleValue());
     bson.put("threadID", node.getThreadID());
     bson.put("content", node.getContent());

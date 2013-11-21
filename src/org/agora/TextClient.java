@@ -5,6 +5,7 @@ import java.util.*;
 import org.agora.graph.JAgoraGraph;
 import org.agora.lib.*;
 import org.agora.logging.*;
+import org.bson.BasicBSONObject;
 
 public class TextClient {
 
@@ -34,6 +35,8 @@ public class TextClient {
         running = false;
       else if(tokens[0].equals("thread"))
         getThreadByID(tokens);
+      else if(tokens[0].equals("argument"))
+        addArgument(tokens, s);
       else
         System.out.println("Unrecognised command.");
     }
@@ -41,6 +44,10 @@ public class TextClient {
   }
   
   public void host(String[] tokens) {
+    if (tokens.length < 2) {
+      System.out.println("Usage: login <hostname> [port]");
+      return;
+    }
     System.out.println("Setting host...");
     int port = Options.AGORA_PORT;
     if (tokens.length > 2)
@@ -50,6 +57,11 @@ public class TextClient {
   }
   
   public void login(String[] tokens) {
+    if (tokens.length < 3) {
+      System.out.println("Usage: login <username> <password>");
+      return;
+    }
+    
     System.out.print("Logging in...");
     boolean result = lib.login(tokens[1], tokens[2]);
     if (result){
@@ -65,6 +77,24 @@ public class TextClient {
       System.out.println("Failed!");
     else
       System.out.println("Logged out!");
+  }
+  
+  public void addArgument(String[] tokens, Scanner s) {
+    if (tokens.length < 2) {
+      System.out.println("Missing thread ID.");
+      return;
+    }
+    int threadID = Integer.parseInt(tokens[1]);
+    
+    String text = s.nextLine();
+    
+    BasicBSONObject content = new BasicBSONObject();
+    content.put(IJAgoraLib.TEXT_FIELD, text);
+    
+    if (lib.addArgument(content, threadID))
+      System.out.println("Argument added!");
+    else
+      System.out.println("Argument could not be added");
   }
   
   public void getThreadByID(String[] tokens) {
