@@ -2,6 +2,7 @@ package org.agora;
 
 import java.util.*;
 
+import org.agora.graph.JAgoraGraph;
 import org.agora.lib.*;
 import org.agora.logging.*;
 
@@ -9,6 +10,8 @@ public class TextClient {
 
   protected JAgoraLib lib;
   protected boolean running;
+  
+  protected JAgoraGraph graph;
   
   public TextClient(){
     running = false;
@@ -29,6 +32,8 @@ public class TextClient {
         logout(tokens);
       else if(tokens[0].equals("quit"))
         running = false;
+      else if(tokens[0].equals("thread"))
+        getThreadByID(tokens);
       else
         System.out.println("Unrecognised command.");
     }
@@ -60,6 +65,22 @@ public class TextClient {
       System.out.println("Failed!");
     else
       System.out.println("Logged out!");
+  }
+  
+  public void getThreadByID(String[] tokens) {
+    if (tokens.length < 2) {
+      System.out.println("Wrong arguments.");
+      return;
+    }
+    
+    int threadID = Integer.parseInt(tokens[1]);
+    System.out.println("Getting JAgoraGraph for thread id = " + threadID + ".");
+    graph = lib.getThreadByID(threadID);
+    if(graph == null) {
+      System.out.println("Something failed.");
+    } else {
+      System.out.println("Got it!");
+    }
   }
   
   public static void main(String[] args) {

@@ -4,13 +4,12 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import org.agora.graph.JAgoraEdge;
 import org.agora.graph.JAgoraGraph;
 import org.agora.graph.JAgoraNode;
 import org.agora.logging.Log;
 import org.bson.BasicBSONObject;
 
-public class JAgoraLib<G extends JAgoraGraph, N extends JAgoraNode, E extends JAgoraEdge> implements IJAgoraLib<G, N, E> {  
+public class JAgoraLib implements IJAgoraLib {  
   
   protected int userID;
   protected String sessionID;
@@ -18,7 +17,7 @@ public class JAgoraLib<G extends JAgoraGraph, N extends JAgoraNode, E extends JA
   protected int port;
   
   protected BSONGraphEncoder encoder;
-  protected BSONGraphDecoder<G, N, E> decoder;
+  protected BSONGraphDecoder decoder;
   
   /**
    * @param hostname The Agora server location.
@@ -31,11 +30,8 @@ public class JAgoraLib<G extends JAgoraGraph, N extends JAgoraNode, E extends JA
     this.port = port;
     
     encoder = new BSONGraphEncoder();
-    decoder = new BSONGraphDecoder<G, N, E>();
+    decoder = new BSONGraphDecoder();
   }
-  
-  public void setEncoder(BSONGraphEncoder encoder) { this.encoder = encoder; }
-  public void setDecoder(BSONGraphDecoder<G, N, E> decoder) { this.decoder = decoder; }
   
   protected Socket openConnection() {
     return openConnection(hostname, port);
@@ -62,6 +58,10 @@ public class JAgoraLib<G extends JAgoraGraph, N extends JAgoraNode, E extends JA
     }
     return false;
   }
+  
+  
+  // LOGIN REQUEST
+  
   
   /**
    * Constructs an Agora protocol login request in BSON.
@@ -152,7 +152,7 @@ public class JAgoraLib<G extends JAgoraGraph, N extends JAgoraNode, E extends JA
   }
   
   
-  
+  // LOGOUT
   
   protected BasicBSONObject constructLogoutRequest() {
     BasicBSONObject bsonRequest = constructBasicRequest();
@@ -211,37 +211,96 @@ public class JAgoraLib<G extends JAgoraGraph, N extends JAgoraNode, E extends JA
     return true;
   }
   
-  
-  public boolean isConnected() {
-    return sessionID != null;
-  }
+ 
 
   
   
+  // ADD ARGUMENT REQUEST
+  
+  
+  protected BasicBSONObject constructaAddArgumentRequest(BasicBSONObject content, int threadID) {
+    BasicBSONObject bsonRequest = constructBasicRequest(); // Contains user ID already
+    bsonRequest.put(ACTION_FIELD, ADD_ARGUMENT_ACTION);
+    bsonRequest.put(CONTENT_FIELD, content);
+    bsonRequest.put(THREAD_ID_FIELD, threadID);
+    return bsonRequest;
+  }
+  
+  protected JAgoraNode parseAddArgumentResponse(BasicBSONObject bson) {
+    int response = bson.getInt(RESPONSE_FIELD);
+    if (response == SERVER_FAIL) {
+      Log.error("[JAgoraLib] Could not add argument (" + bson.getString(REASON_FIELD) + ")");
+      return null;
+    }
+    
+    JAgoraNode n = decoder.deBSONiseNode((BasicBSONObject)bson.get(ARGUMENT_FIELD));
+    return n;
+  }
+  
+  
+  @Override
+  public JAgoraNode addArgument(BasicBSONObject content, int threadID) {
+    if (!isConnected()) {
+      Log.error("[JAgoraLib] Querying but not connected.");
+      return null;
+    }
+    
+    Socket s = openConnection();
+    if (s == null) {
+      Log.error("[JAgoraLib] Could not open connection for thread query.");
+      return null;
+    }
+    
+    boolean success = JAgoraComms.writeBSONObjectToSocket(s, constructaAddArgumentRequest(content, threadID));
+    if (!success) {
+      Log.error("[JAgoraLib] Could not write addArgument query.");
+      return null;
+    }
+    
+    BasicBSONObject response = JAgoraComms.readBSONObjectFromSocket(s);
+    if (response == null) {
+      Log.error("[JAgoraLib] Could not read addArgument response.");
+      return null;
+    }
+    
+    JAgoraNode node = parseAddArgumentResponse(response);
+    
+    success = node == null;
+    if(!success){
+      Log.error("[JAgoraLib] Could not parse addArgument response.");
+      return null;
+    }
+    
+    return node;
+  }
+  
+  
+  
+  // GET THREAD BY ID REQUEST
   
   
   
   protected BasicBSONObject constructGetThreadByIDRequest(int threadID) {
     BasicBSONObject bsonRequest = constructBasicRequest();
     bsonRequest.put(ACTION_FIELD, QUERY_BY_THREAD_ID_ACTION);
-    bsonRequest.put(QUERY_ID_FIELD, threadID);
+    bsonRequest.put(THREAD_ID_FIELD, threadID);
     return bsonRequest;
   }
   
-  protected G parseQueryByThreadIDResponse(BasicBSONObject bson) {
+  protected JAgoraGraph parseQueryByThreadIDResponse(BasicBSONObject bson) {
     int response = bson.getInt(RESPONSE_FIELD);
     if (response == SERVER_FAIL) {
       Log.error("[JAgoraLib] Could not get thread (" + bson.getString(REASON_FIELD) + ")");
       return null;
     }
     
-    G g = decoder.deBSONiseGraph((BasicBSONObject)bson.get(GRAPH_FIELD));
+    JAgoraGraph g = decoder.deBSONiseGraph((BasicBSONObject)bson.get(GRAPH_FIELD));
     return g;
   }
   
   
   @Override
-  public G getThreadByID(int threadID) {
+  public JAgoraGraph getThreadByID(int threadID) {
     if (!isConnected()) {
       Log.error("[JAgoraLib] Querying but not connected.");
       return null;
@@ -265,7 +324,7 @@ public class JAgoraLib<G extends JAgoraGraph, N extends JAgoraNode, E extends JA
       return null;
     }
     
-    G graph = parseQueryByThreadIDResponse(response);
+    JAgoraGraph graph = parseQueryByThreadIDResponse(response);
     
     success = graph == null;
     if(!success){
@@ -274,5 +333,10 @@ public class JAgoraLib<G extends JAgoraGraph, N extends JAgoraNode, E extends JA
     }
     
     return graph;
+  }
+  
+  
+  public boolean isConnected() {
+    return sessionID != null;
   }
 }
