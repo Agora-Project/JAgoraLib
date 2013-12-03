@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 import org.agora.graph.JAgoraGraph;
+import org.agora.graph.JAgoraNodeID;
 import org.agora.logging.Log;
 import org.bson.BasicBSONObject;
 
@@ -271,10 +272,65 @@ public class JAgoraLib implements IJAgoraLib {
   }
   
   
+  protected BasicBSONObject constructaAddAttackRequest(JAgoraNodeID attacker, JAgoraNodeID defender) {
+    BasicBSONObject bsonRequest = constructBasicRequest(); // Contains user ID already
+    
+    BSONGraphEncoder enc = new BSONGraphEncoder();
+    
+    bsonRequest.put(ACTION_FIELD, ADD_ATTACK_ACTION);
+    bsonRequest.put(ATTACKER_FIELD, enc.BSONiseNodeID(attacker));
+    bsonRequest.put(DEFENDER_FIELD, enc.BSONiseNodeID(defender));
+    return bsonRequest;
+  }
+  
+  protected boolean parseAddAttackResponse(BasicBSONObject bson) {
+    int response = bson.getInt(RESPONSE_FIELD);
+    if (response == SERVER_FAIL) {
+      Log.error("[JAgoraLib] Could not add attack (" + bson.getString(REASON_FIELD) + ")");
+      return false;
+    }
+    
+    return true;
+  }
+  
+  
+  @Override
+  public boolean addAttack(JAgoraNodeID attacker, JAgoraNodeID defender) {
+    if (!isConnected()) {
+      Log.error("[JAgoraLib] Querying but not connected.");
+      return false;
+    }
+    
+    Socket s = openConnection();
+    if (s == null) {
+      Log.error("[JAgoraLib] Could not open connection for thread query.");
+      return false;
+    }
+    
+    boolean success = JAgoraComms.writeBSONObjectToSocket(s, constructaAddAttackRequest(attacker, defender));
+    if (!success) {
+      Log.error("[JAgoraLib] Could not write addAttack query.");
+      return false;
+    }
+    
+    BasicBSONObject response = JAgoraComms.readBSONObjectFromSocket(s);
+    if (response == null) {
+      Log.error("[JAgoraLib] Could not read addAttack response.");
+      return false;
+    }
+    
+    success = parseAddAttackResponse(response);
+    if(!success){
+      Log.error("[JAgoraLib] Could not parse addAttack response.");
+      return false;
+    }
+    
+    return true;
+  }
+  
+  
   
   // GET THREAD BY ID REQUEST
-  
-  
   
   protected BasicBSONObject constructGetThreadByIDRequest(int threadID) {
     BasicBSONObject bsonRequest = constructBasicRequest();

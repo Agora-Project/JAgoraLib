@@ -3,6 +3,7 @@ package org.agora;
 import java.util.*;
 
 import org.agora.graph.JAgoraGraph;
+import org.agora.graph.JAgoraNodeID;
 import org.agora.lib.*;
 import org.agora.logging.*;
 import org.bson.BasicBSONObject;
@@ -37,12 +38,14 @@ public class TextClient {
         getThreadByID(tokens);
       else if(tokens[0].equals("argument"))
         addArgument(tokens, s);
+      else if(tokens[0].equals("attack"))
+        addAttack(tokens);
       else
         System.out.println("Unrecognised command.");
     }
     s.close();
   }
-  
+
   public void host(String[] tokens) {
     if (tokens.length < 2) {
       System.out.println("Usage: login <hostname> [port]");
@@ -86,6 +89,7 @@ public class TextClient {
     }
     int threadID = Integer.parseInt(tokens[1]);
     
+    System.out.println("Please state argument text:");
     String text = s.nextLine();
     
     BasicBSONObject content = new BasicBSONObject();
@@ -96,6 +100,22 @@ public class TextClient {
     else
       System.out.println("Argument could not be added");
   }
+  
+  private void addAttack(String[] tokens) {
+    if (tokens.length < 5) {
+      System.out.println("Wrong arguments.");
+      return;
+    }
+    
+    JAgoraNodeID attacker = new JAgoraNodeID(tokens[1], Integer.parseInt(tokens[2]));
+    JAgoraNodeID defender = new JAgoraNodeID(tokens[3], Integer.parseInt(tokens[4]));
+    
+    if (lib.addAttack(attacker, defender))
+      System.out.println("Attack added!");
+    else
+      System.out.println("Attack could not be added");
+  }
+  
   
   public void getThreadByID(String[] tokens) {
     if (tokens.length < 2) {
@@ -112,6 +132,10 @@ public class TextClient {
       System.out.println("Got it!");
     }
   }
+  
+  
+  
+  
   
   public static void main(String[] args) {
     Log.addLog(new ConsoleLog());
