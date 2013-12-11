@@ -202,7 +202,7 @@ public class JAgoraLib implements IJAgoraLib {
     
     success = parseLogoutResponse(response);
     if(!success){
-      Log.error("[JAgoraLib] Could not parse logout response.");
+      Log.error("[JAgoraLib] Could not logout properly.");
       return false;
     }
     
@@ -264,7 +264,7 @@ public class JAgoraLib implements IJAgoraLib {
     
     success = parseAddArgumentResponse(response);
     if(!success){
-      Log.error("[JAgoraLib] Could not parse addArgument response.");
+      Log.error("[JAgoraLib] Could not addArgument.");
       return false;
     }
     
@@ -321,7 +321,7 @@ public class JAgoraLib implements IJAgoraLib {
     
     success = parseAddAttackResponse(response);
     if(!success){
-      Log.error("[JAgoraLib] Could not parse addAttack response.");
+      Log.error("[JAgoraLib] Could not addAttack.");
       return false;
     }
     
@@ -380,7 +380,7 @@ public class JAgoraLib implements IJAgoraLib {
     
     success = graph == null;
     if(!success){
-      Log.error("[JAgoraLib] Could not parse getThreadByID response.");
+      Log.error("[JAgoraLib] Could not getThreadByID.");
       return null;
     }
     
