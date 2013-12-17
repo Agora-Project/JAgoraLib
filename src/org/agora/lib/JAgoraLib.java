@@ -217,7 +217,6 @@ public class JAgoraLib implements IJAgoraLib {
   
   // ADD ARGUMENT REQUEST
   
-  
   protected BasicBSONObject constructaAddArgumentRequest(BasicBSONObject content, int threadID) {
     BasicBSONObject bsonRequest = constructBasicRequest(); // Contains user ID already
     bsonRequest.put(ACTION_FIELD, ADD_ARGUMENT_ACTION);
@@ -271,6 +270,8 @@ public class JAgoraLib implements IJAgoraLib {
     return true;
   }
   
+  
+  // ADD ATTACK
   
   protected BasicBSONObject constructaAddAttackRequest(JAgoraNodeID attacker, JAgoraNodeID defender) {
     BasicBSONObject bsonRequest = constructBasicRequest(); // Contains user ID already
@@ -327,6 +328,132 @@ public class JAgoraLib implements IJAgoraLib {
     
     return true;
   }
+  
+  
+  
+  
+  
+//ADD ARGUMENT VOTE REQUEST
+  
+ protected BasicBSONObject constructaAddArgumentVoteRequest(JAgoraNodeID nodeID, int voteType) {
+   BasicBSONObject bsonRequest = constructBasicRequest(); // Contains user ID already
+   bsonRequest.put(ACTION_FIELD, ADD_ARGUMENT_ACTION);
+   bsonRequest.put(VOTE_TYPE_FIELD, voteType);
+   bsonRequest.put(ARGUMENT_ID_FIELD, new BSONGraphEncoder().BSONiseNodeID(nodeID));
+   return bsonRequest;
+ }
+ 
+ protected boolean parseAddArgumentVoteResponse(BasicBSONObject bson) {
+   int response = bson.getInt(RESPONSE_FIELD);
+   if (response == SERVER_FAIL) {
+     Log.error("[JAgoraLib] Could not add argument vote (" + bson.getString(REASON_FIELD) + ")");
+     return false;
+   }
+   
+   return true;
+ }
+ 
+ 
+ @Override
+ public boolean addArgumentVote(JAgoraNodeID nodeID, int voteType) {
+   if (!isConnected()) {
+     Log.error("[JAgoraLib] Querying but not connected.");
+     return false;
+   }
+   
+   Socket s = openConnection();
+   if (s == null) {
+     Log.error("[JAgoraLib] Could not open connection for argument vote query.");
+     return false;
+   }
+   
+   boolean success = JAgoraComms.writeBSONObjectToSocket(s, constructaAddArgumentVoteRequest(nodeID, voteType));
+   if (!success) {
+     Log.error("[JAgoraLib] Could not write addArgumentVote query.");
+     return false;
+   }
+   
+   BasicBSONObject response = JAgoraComms.readBSONObjectFromSocket(s);
+   if (response == null) {
+     Log.error("[JAgoraLib] Could not read addArgumentVote response.");
+     return false;
+   }
+   
+   success = parseAddArgumentVoteResponse(response);
+   if(!success){
+     Log.error("[JAgoraLib] Could not addArgumentVote.");
+     return false;
+   }
+   
+   return true;
+ }
+ 
+ 
+ // ADD ATTACK VOTE 
+ 
+ protected BasicBSONObject constructaAddAttackVoteRequest(JAgoraNodeID attacker, JAgoraNodeID defender, int voteType) {
+   BasicBSONObject bsonRequest = constructBasicRequest(); // Contains user ID already
+   
+   BSONGraphEncoder enc = new BSONGraphEncoder();
+   
+   bsonRequest.put(ACTION_FIELD, ADD_ATTACK_ACTION);
+   bsonRequest.put(ATTACKER_FIELD, enc.BSONiseNodeID(attacker));
+   bsonRequest.put(DEFENDER_FIELD, enc.BSONiseNodeID(defender));
+   bsonRequest.put(VOTE_TYPE_FIELD, voteType);
+   return bsonRequest;
+ }
+ 
+ protected boolean parseAddAttackVoteResponse(BasicBSONObject bson) {
+   int response = bson.getInt(RESPONSE_FIELD);
+   if (response == SERVER_FAIL) {
+     Log.error("[JAgoraLib] Could not add attack vote (" + bson.getString(REASON_FIELD) + ")");
+     return false;
+   }
+   
+   return true;
+ }
+ 
+ 
+ @Override
+ public boolean addAttackVote(JAgoraNodeID attacker, JAgoraNodeID defender, int voteType) {
+   if (!isConnected()) {
+     Log.error("[JAgoraLib] Querying but not connected.");
+     return false;
+   }
+   
+   Socket s = openConnection();
+   if (s == null) {
+     Log.error("[JAgoraLib] Could not open connection for thread query.");
+     return false;
+   }
+   
+   boolean success = JAgoraComms.writeBSONObjectToSocket(s, constructaAddAttackVoteRequest(attacker, defender, voteType));
+   if (!success) {
+     Log.error("[JAgoraLib] Could not write addAttack query.");
+     return false;
+   }
+   
+   BasicBSONObject response = JAgoraComms.readBSONObjectFromSocket(s);
+   if (response == null) {
+     Log.error("[JAgoraLib] Could not read addAttack response.");
+     return false;
+   }
+   
+   success = parseAddAttackVoteResponse(response);
+   if(!success){
+     Log.error("[JAgoraLib] Could not addAttack.");
+     return false;
+   }
+   
+   return true;
+ }
+  
+  
+  
+  
+  
+  
+  
   
   
   

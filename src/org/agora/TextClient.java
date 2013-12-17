@@ -40,6 +40,10 @@ public class TextClient {
         addArgument(tokens, s);
       else if(tokens[0].equals("attack"))
         addAttack(tokens);
+      else if(tokens[0].equals("argumentVote"))
+        addArgumentVote(tokens);
+      else if(tokens[0].equals("attackVote"))
+        addAttackVote(tokens);
       else
         System.out.println("Unrecognised command.");
     }
@@ -114,6 +118,45 @@ public class TextClient {
       System.out.println("Attack added!");
     else
       System.out.println("Attack could not be added");
+  }
+  
+  private void addAttackVote(String[] tokens) {
+    if (tokens.length < 6) {
+      System.out.println("Wrong arguments.");
+      return;
+    }
+    
+    JAgoraNodeID attacker = new JAgoraNodeID(tokens[1], Integer.parseInt(tokens[2]));
+    JAgoraNodeID defender = new JAgoraNodeID(tokens[3], Integer.parseInt(tokens[4]));
+    int voteType = Integer.parseInt(tokens[5]);
+    if(voteType != 0 || voteType != 1) {
+      System.out.println("Vote types are 0 or 1 only.");
+      return;
+    }
+    
+    if (lib.addAttackVote(attacker, defender, voteType))
+      System.out.println("Attack vote added!");
+    else
+      System.out.println("Attack vote could not be added");
+  }
+  
+  private void addArgumentVote(String[] tokens) {
+    if (tokens.length < 3) {
+      System.out.println("Wrong arguments.");
+      return;
+    }
+    
+    JAgoraNodeID nodeID = new JAgoraNodeID(tokens[1], Integer.parseInt(tokens[2]));
+    int voteType = Integer.parseInt(tokens[5]);
+    if(voteType != 0 || voteType != 1) {
+      System.out.println("Vote types are 0 or 1 only.");
+      return;
+    }
+    
+    if (lib.addArgumentVote(nodeID, voteType))
+      System.out.println("Argument vote added!");
+    else
+      System.out.println("Argument vote could not be added.");
   }
   
   
