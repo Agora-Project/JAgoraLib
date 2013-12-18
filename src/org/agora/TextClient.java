@@ -129,7 +129,7 @@ public class TextClient {
     JAgoraNodeID attacker = new JAgoraNodeID(tokens[1], Integer.parseInt(tokens[2]));
     JAgoraNodeID defender = new JAgoraNodeID(tokens[3], Integer.parseInt(tokens[4]));
     int voteType = Integer.parseInt(tokens[5]);
-    if(voteType != 0 || voteType != 1) {
+    if(voteType != 0 && voteType != 1) {
       System.out.println("Vote types are 0 or 1 only.");
       return;
     }
@@ -147,8 +147,8 @@ public class TextClient {
     }
     
     JAgoraNodeID nodeID = new JAgoraNodeID(tokens[1], Integer.parseInt(tokens[2]));
-    int voteType = Integer.parseInt(tokens[5]);
-    if(voteType != 0 || voteType != 1) {
+    int voteType = Integer.parseInt(tokens[3]);
+    if(voteType != 0 && voteType != 1) {
       System.out.println("Vote types are 0 or 1 only.");
       return;
     }

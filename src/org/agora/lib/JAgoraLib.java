@@ -337,7 +337,7 @@ public class JAgoraLib implements IJAgoraLib {
   
  protected BasicBSONObject constructaAddArgumentVoteRequest(JAgoraNodeID nodeID, int voteType) {
    BasicBSONObject bsonRequest = constructBasicRequest(); // Contains user ID already
-   bsonRequest.put(ACTION_FIELD, ADD_ARGUMENT_ACTION);
+   bsonRequest.put(ACTION_FIELD, ADD_ARGUMENT_VOTE_ACTION);
    bsonRequest.put(VOTE_TYPE_FIELD, voteType);
    bsonRequest.put(ARGUMENT_ID_FIELD, new BSONGraphEncoder().BSONiseNodeID(nodeID));
    return bsonRequest;
@@ -396,7 +396,7 @@ public class JAgoraLib implements IJAgoraLib {
    
    BSONGraphEncoder enc = new BSONGraphEncoder();
    
-   bsonRequest.put(ACTION_FIELD, ADD_ATTACK_ACTION);
+   bsonRequest.put(ACTION_FIELD, ADD_ATTACK_VOTE_ACTION);
    bsonRequest.put(ATTACKER_FIELD, enc.BSONiseNodeID(attacker));
    bsonRequest.put(DEFENDER_FIELD, enc.BSONiseNodeID(defender));
    bsonRequest.put(VOTE_TYPE_FIELD, voteType);
