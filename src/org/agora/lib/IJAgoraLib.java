@@ -14,6 +14,7 @@ public interface IJAgoraLib{
   public final static int ADD_ATTACK_ACTION = 4;
   public final static int ADD_ARGUMENT_VOTE_ACTION = 5;
   public final static int ADD_ATTACK_VOTE_ACTION = 6;
+  public final static int REGISTER_ACTION = 7;
   
   
   public final static String USER_ID_FIELD = "id";
@@ -30,6 +31,7 @@ public interface IJAgoraLib{
   public final static String DEFENDER_FIELD = "def";
   public final static String ARGUMENT_ID_FIELD = "aid";
   public final static String VOTE_TYPE_FIELD = "vt";
+  public final static String EMAIL_FIELD = "@";
   
   // Content data
   public final static String TEXT_FIELD = "txt";

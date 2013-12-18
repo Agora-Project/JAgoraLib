@@ -28,6 +28,8 @@ public class TextClient {
       String[] tokens = command.split(" ");
       if (tokens[0].equals("host"))
         host(tokens);
+      else if (tokens[0].equals("register"))
+        register(tokens);
       else if (tokens[0].equals("login"))
         login(tokens);
       else if (tokens[0].equals("logout"))
@@ -61,6 +63,21 @@ public class TextClient {
       port = Integer.parseInt(tokens[2]);
     lib = new JAgoraLib(tokens[1], port);
     System.out.println("Setting host complete.");
+  }
+  
+  public void register(String[] tokens) {
+    if (tokens.length < 4) {
+      System.out.println("Usage: register <username> <password> <email>");
+      return;
+    }
+    
+    System.out.print("Logging in...");
+    boolean result = lib.register(tokens[1], tokens[2], tokens[3]);
+    if (result){
+      System.out.println("Registered!");
+    } else {
+      System.out.println("Failed.");
+    }
   }
   
   public void login(String[] tokens) {

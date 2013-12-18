@@ -137,6 +137,86 @@ public class JAgoraLib implements IJAgoraLib {
     return true;
   }
   
+//LOGIN REQUEST
+  
+  
+ /**
+  * Constructs an Agora protocol register request in BSON.
+  * @param user
+  * @param password
+  * @return
+  */
+ protected BasicBSONObject constructRegisterRequest(String user, String password, String email) {
+   BasicBSONObject bson = new BasicBSONObject();
+   bson.put(ACTION_FIELD, IJAgoraLib.REGISTER_ACTION);
+   bson.put(USER_FIELD, user);
+   bson.put(PASSWORD_FIELD, password);
+   bson.put(EMAIL_FIELD, email);
+   return bson;
+ }
+ 
+ /**
+  * Tries to parse an Agora register response from BSON.
+  * @param bson
+  * @return
+  */
+ protected boolean parseRegisterResponse(BasicBSONObject bson) {
+   int response = bson.getInt(RESPONSE_FIELD);
+   if (response == SERVER_FAIL) {
+     Log.error("[JAgoraLib] Could not register (" + bson.getString(REASON_FIELD) + ")");
+     return false;
+   }
+   
+   return true;
+ }
+ 
+ /**
+  * Performs a register request with an Agora server.
+  * @param user
+  * @param password
+  * @return
+  */
+ public boolean register(String user, String password, String email) {
+   Socket s = openConnection(hostname, port);
+   if (s == null) {
+     Log.error("[JAgoraLib] Could not connect because socket could not be opened.");
+     return false;
+   }
+   
+   boolean success = JAgoraComms.writeBSONObjectToSocket(s, constructRegisterRequest(user, password, email));
+   if (!success) {
+     Log.error("[JAgoraLib] Could not send register message.");
+     return false;
+   }
+
+   BasicBSONObject response = JAgoraComms.readBSONObjectFromSocket(s);
+   if (response == null) {
+     Log.error("[JAgoraLib] Could not read register response.");
+     return false;
+   }
+   success = parseRegisterResponse(response);
+   if (!success) {
+     Log.error("[JAgoraLib] Failed to register. Perhaps a taken username?");
+     return false;
+   }
+
+   success = closeConnection(s);
+   if (!success) {
+     Log.error("[JAgoraLib] Problems closing login connection.");
+     return false;
+   }
+   Log.debug("[JAgoraLib] Successful login for " + user);
+   return true;
+ }
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   /**
    * Constructs an empty response based on this Lib's user ID and session ID.
