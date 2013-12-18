@@ -585,7 +585,7 @@ public class JAgoraLib implements IJAgoraLib {
     
     JAgoraGraph graph = parseQueryByThreadIDResponse(response);
     
-    success = graph == null;
+    success = graph != null;
     if(!success){
       Log.error("[JAgoraLib] Could not getThreadByID.");
       return null;

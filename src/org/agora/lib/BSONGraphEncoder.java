@@ -50,7 +50,7 @@ public class BSONGraphEncoder {
     // Add edges.
     BasicBSONList bsonEdgeList = new BasicBSONList();
     for (JAgoraEdge e : graph.edgeMap.values()) {
-      bsonNodeList.add(BSONiseEdge(e));
+      bsonEdgeList.add(BSONiseEdge(e));
     }
 
     bsonGraph.put("edges", bsonEdgeList);

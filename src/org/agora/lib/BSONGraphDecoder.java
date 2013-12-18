@@ -21,7 +21,7 @@ public class BSONGraphDecoder {
     JAgoraNodeID nodeID = deBSONiseNodeID((BasicBSONObject) bsonNode.get("id"));
     JAgoraNode node = new JAgoraNode(nodeID);
 
-    node.setPosterID(bsonNode.getInt("id"));
+    node.setPosterID(bsonNode.getInt("posterID"));
     node.setPosterName(bsonNode.getString("posterName"));
     node.setDate(new Date(bsonNode.getLong("date")));
     node.setAcceptability(new BigDecimal(bsonNode.getDouble("acceptability")));
