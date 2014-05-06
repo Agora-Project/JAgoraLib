@@ -1,7 +1,9 @@
 package org.agora.lib;
 
+import java.util.ArrayList;
 import org.agora.graph.JAgoraGraph;
 import org.agora.graph.JAgoraNodeID;
+import org.agora.graph.JAgoraThread;
 import org.bson.BasicBSONObject;
 
 public interface IJAgoraLib{
@@ -15,6 +17,7 @@ public interface IJAgoraLib{
   public final static int ADD_ARGUMENT_VOTE_ACTION = 5;
   public final static int ADD_ATTACK_VOTE_ACTION = 6;
   public final static int REGISTER_ACTION = 7;
+  public final static int QUERY_THREAD_LIST_ACTION = 8;
   
   
   public final static String USER_ID_FIELD = "id";
@@ -81,4 +84,6 @@ public interface IJAgoraLib{
    * @return The graph representing the thread.
    */
   JAgoraGraph getThreadByID(int threadID);
+  
+  ArrayList<JAgoraThread> getThreadList();
 }

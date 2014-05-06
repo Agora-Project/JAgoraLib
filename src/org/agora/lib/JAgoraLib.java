@@ -3,9 +3,15 @@ package org.agora.lib;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 
 import org.agora.graph.JAgoraGraph;
 import org.agora.graph.JAgoraNodeID;
+import org.agora.graph.JAgoraThread;
+import static org.agora.lib.IJAgoraLib.GRAPH_FIELD;
+import static org.agora.lib.IJAgoraLib.REASON_FIELD;
+import static org.agora.lib.IJAgoraLib.RESPONSE_FIELD;
+import static org.agora.lib.IJAgoraLib.SERVER_FAIL;
 import org.agora.logging.Log;
 import org.bson.BasicBSONObject;
 
@@ -534,6 +540,57 @@ public class JAgoraLib implements IJAgoraLib {
   
   
   
+  
+  //GET THREAD LIST
+ 
+  protected BasicBSONObject constructGetThreadListRequest() {
+    BasicBSONObject bsonRequest = constructBasicRequest();
+    bsonRequest.put(ACTION_FIELD, QUERY_THREAD_LIST_ACTION);
+    return bsonRequest;
+  }
+  
+  protected ArrayList<JAgoraThread> parseGetThreadListResponse(BasicBSONObject bson) {
+      
+      
+      return null;
+  }
+  
+  @Override
+  public ArrayList<JAgoraThread> getThreadList() {
+      
+      if (!isConnected()) {
+      Log.error("[JAgoraLib] Querying but not connected.");
+      return null;
+    }
+    
+    Socket s = openConnection();
+    if (s == null) {
+      Log.error("[JAgoraLib] Could not open connection for thread query.");
+      return null;
+    }
+    
+    boolean success = JAgoraComms.writeBSONObjectToSocket(s, constructGetThreadListRequest());
+    if (!success) {
+      Log.error("[JAgoraLib] Could not write getThreadList query.");
+      return null;
+    }
+    
+    BasicBSONObject response = JAgoraComms.readBSONObjectFromSocket(s);
+    if (response == null) {
+      Log.error("[JAgoraLib] Could not read getThreadList response.");
+      return null;
+    }
+    
+    ArrayList<JAgoraThread> threads = parseGetThreadListResponse(response);
+    
+    success = threads != null;
+    if(!success){
+      Log.error("[JAgoraLib] Could not getThreadList.");
+      return null;
+    }
+      return threads;
+      
+  }
   
   
   

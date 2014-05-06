@@ -54,7 +54,7 @@ public class TextClient {
 
   public void host(String[] tokens) {
     if (tokens.length < 2) {
-      System.out.println("Usage: login <hostname> [port]");
+      System.out.println("Usage: host <hostname> [port]");
       return;
     }
     System.out.println("Setting host...");
