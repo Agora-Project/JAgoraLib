@@ -29,7 +29,7 @@ public interface IJAgoraLib{
   public final static String REASON_FIELD = "rs";
   public final static String THREAD_ID_FIELD = "tID";
   public final static String GRAPH_FIELD = "g";
-  public final static String THREAD_FIELD = "t";
+  public final static String THREAD_LIST_FIELD = "t";
   public final static String CONTENT_FIELD = "c";
   public final static String ATTACKER_FIELD = "att";
   public final static String DEFENDER_FIELD = "def";

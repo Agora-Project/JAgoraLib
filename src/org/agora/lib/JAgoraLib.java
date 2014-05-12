@@ -22,8 +22,10 @@ public class JAgoraLib implements IJAgoraLib {
   protected String hostname;
   protected int port;
   
-  protected BSONGraphEncoder encoder;
-  protected BSONGraphDecoder decoder;
+  protected BSONGraphEncoder graphEncoder;
+  protected BSONGraphDecoder graphDecoder;
+  protected BSONThreadListEncoder threadListEncoder;
+  protected BSONThreadListDecoder threadListDecoder;
   
   /**
    * @param hostname The Agora server location.
@@ -35,8 +37,11 @@ public class JAgoraLib implements IJAgoraLib {
     this.hostname = hostname;
     this.port = port;
     
-    encoder = new BSONGraphEncoder();
-    decoder = new BSONGraphDecoder();
+    graphEncoder = new BSONGraphEncoder();
+    graphDecoder = new BSONGraphDecoder();
+    
+    threadListEncoder = new BSONThreadListEncoder();
+    threadListDecoder = new BSONThreadListDecoder();
   }
   
   protected Socket openConnection() {
@@ -551,8 +556,13 @@ public class JAgoraLib implements IJAgoraLib {
   
   protected ArrayList<JAgoraThread> parseGetThreadListResponse(BasicBSONObject bson) {
       
-      
+      int response = bson.getInt(RESPONSE_FIELD);
+      if (response == SERVER_FAIL) {
+         Log.error("[JAgoraLib] Could not get thread (" + bson.getString(REASON_FIELD) + ")");
       return null;
+      }
+      ArrayList<JAgoraThread> threads = threadListDecoder.deBSONiseThreadList((BasicBSONObject) bson.get(THREAD_LIST_FIELD));
+      return threads;
   }
   
   @Override
@@ -610,7 +620,7 @@ public class JAgoraLib implements IJAgoraLib {
       return null;
     }
     
-    JAgoraGraph g = decoder.deBSONiseGraph((BasicBSONObject)bson.get(GRAPH_FIELD));
+    JAgoraGraph g = graphDecoder.deBSONiseGraph((BasicBSONObject)bson.get(GRAPH_FIELD));
     return g;
   }
   
