@@ -18,6 +18,7 @@ public interface IJAgoraLib{
   public final static int ADD_ATTACK_VOTE_ACTION = 6;
   public final static int REGISTER_ACTION = 7;
   public final static int QUERY_THREAD_LIST_ACTION = 8;
+  public final static int QUERY_LATEST_ARGUMENT_ACTION = 9;
   
   
   public final static String USER_ID_FIELD = "id";
@@ -66,10 +67,12 @@ public interface IJAgoraLib{
    */
   boolean isConnected();
   
+  JAgoraNodeID getLatestArgumentID();
   
-  
-  boolean addArgument(BasicBSONObject content, int threadID);
+  JAgoraNodeID addArgument(BasicBSONObject content, int threadID);
   boolean addAttack(JAgoraNodeID attacker, JAgoraNodeID defender);
+  
+  boolean addArgumentWithAttacks(BasicBSONObject content, int threadID, ArrayList<JAgoraNodeID> defenders);
   
   boolean addArgumentVote(JAgoraNodeID nodeID, int voteType);
   boolean addAttackVote(JAgoraNodeID attacker, JAgoraNodeID defender, int voteType);

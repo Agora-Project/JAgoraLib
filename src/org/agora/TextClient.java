@@ -116,7 +116,7 @@ public class TextClient {
     BasicBSONObject content = new BasicBSONObject();
     content.put(IJAgoraLib.TEXT_FIELD, text);
     
-    if (lib.addArgument(content, threadID))
+    if (lib.addArgument(content, threadID) != null)
       System.out.println("Argument added!");
     else
       System.out.println("Argument could not be added");

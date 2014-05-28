@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import org.agora.graph.JAgoraGraph;
 import org.agora.graph.JAgoraNodeID;
 import org.agora.graph.JAgoraThread;
+import static org.agora.lib.IJAgoraLib.ACTION_FIELD;
 import org.agora.logging.Log;
 import org.bson.BasicBSONObject;
 
@@ -312,49 +313,50 @@ public class JAgoraLib implements IJAgoraLib {
     return bsonRequest;
   }
   
-  protected boolean parseAddArgumentResponse(BasicBSONObject bson) {
+  protected JAgoraNodeID parseAddArgumentResponse(BasicBSONObject bson) {
     int response = bson.getInt(RESPONSE_FIELD);
     if (response == SERVER_FAIL) {
       Log.error("[JAgoraLib] Could not add argument (" + bson.getString(REASON_FIELD) + ")");
-      return false;
+      return null;
     }
     
-    return true;
+    return (JAgoraNodeID) bson.get(ARGUMENT_ID_FIELD);
   }
   
   
   @Override
-  public boolean addArgument(BasicBSONObject content, int threadID) {
+  public JAgoraNodeID addArgument(BasicBSONObject content, int threadID) {
+      JAgoraNodeID ret = null;
     if (!isConnected()) {
       Log.error("[JAgoraLib] Querying but not connected.");
-      return false;
+      return null;
     }
     
     Socket s = openConnection();
     if (s == null) {
       Log.error("[JAgoraLib] Could not open connection for thread query.");
-      return false;
+      return null;
     }
     
     boolean success = JAgoraComms.writeBSONObjectToSocket(s, constructaAddArgumentRequest(content, threadID));
     if (!success) {
       Log.error("[JAgoraLib] Could not write addArgument query.");
-      return false;
+      return null;
     }
     
     BasicBSONObject response = JAgoraComms.readBSONObjectFromSocket(s);
     if (response == null) {
       Log.error("[JAgoraLib] Could not read addArgument response.");
-      return false;
+      return null;
     }
     
-    success = parseAddArgumentResponse(response);
-    if(!success){
+    ret = parseAddArgumentResponse(response);
+    if(ret == null){
       Log.error("[JAgoraLib] Could not addArgument.");
-      return false;
+      return null;
     }
     
-    return true;
+    return ret;
   }
   
   
@@ -416,8 +418,35 @@ public class JAgoraLib implements IJAgoraLib {
     return true;
   }
   
+  //GET LATEST ARGUMENT ID
+  
+  protected BasicBSONObject constructGetLatestArgumentQuery() {
+      BasicBSONObject bsonRequest = constructBasicRequest(); // Contains user ID already
+      bsonRequest.put(ACTION_FIELD, QUERY_LATEST_ARGUMENT_ACTION);
+      return bsonRequest;
+  }
   
   
+  @Override
+  public JAgoraNodeID getLatestArgumentID() {
+      JAgoraNodeID ret = null;
+      
+      
+      return ret;
+  }
+  
+  //ADD ARGUMENT WITH ATTACKS
+  
+  @Override
+  public boolean addArgumentWithAttacks(BasicBSONObject content, int threadID, ArrayList<JAgoraNodeID> defenders) {
+      
+      JAgoraNodeID ref = addArgument(content, threadID);
+      for (JAgoraNodeID defender : defenders) {
+          addAttack(ref, defender);
+      }
+      
+      return (ref != null);
+  }
   
   
 //ADD ARGUMENT VOTE REQUEST
