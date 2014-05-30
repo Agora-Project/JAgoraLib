@@ -9,6 +9,7 @@ import org.agora.graph.JAgoraGraph;
 import org.agora.graph.JAgoraNodeID;
 import org.agora.graph.JAgoraThread;
 import static org.agora.lib.IJAgoraLib.ACTION_FIELD;
+import static org.agora.lib.IJAgoraLib.ARGUMENT_ID_FIELD;
 import org.agora.logging.Log;
 import org.bson.BasicBSONObject;
 
@@ -320,7 +321,9 @@ public class JAgoraLib implements IJAgoraLib {
       return null;
     }
     
-    return (JAgoraNodeID) bson.get(ARGUMENT_ID_FIELD);
+    BasicBSONObject ret = (BasicBSONObject) bson.get(ARGUMENT_ID_FIELD);
+    
+    return new JAgoraNodeID(ret.getString("Source"), ret.getInt("ID"));
   }
   
   
