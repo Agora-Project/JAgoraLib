@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import org.agora.graph.JAgoraGraph;
 import org.agora.graph.JAgoraNodeID;
 import org.agora.graph.JAgoraThread;
-import static org.agora.lib.IJAgoraLib.ACTION_FIELD;
-import static org.agora.lib.IJAgoraLib.ARGUMENT_ID_FIELD;
 import org.agora.logging.Log;
 import org.bson.BasicBSONObject;
 
