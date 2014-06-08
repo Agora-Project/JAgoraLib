@@ -10,6 +10,9 @@ import org.agora.graph.JAgoraNodeID;
 import org.agora.graph.JAgoraThread;
 import static org.agora.lib.IJAgoraLib.ACTION_FIELD;
 import static org.agora.lib.IJAgoraLib.ARGUMENT_ID_FIELD;
+import static org.agora.lib.IJAgoraLib.REASON_FIELD;
+import static org.agora.lib.IJAgoraLib.RESPONSE_FIELD;
+import static org.agora.lib.IJAgoraLib.SERVER_FAIL;
 import org.agora.logging.Log;
 import org.bson.BasicBSONObject;
 
@@ -421,23 +424,6 @@ public class JAgoraLib implements IJAgoraLib {
     return true;
   }
   
-  //GET LATEST ARGUMENT ID
-  
-  protected BasicBSONObject constructGetLatestArgumentQuery() {
-      BasicBSONObject bsonRequest = constructBasicRequest(); // Contains user ID already
-      bsonRequest.put(ACTION_FIELD, QUERY_LATEST_ARGUMENT_ACTION);
-      return bsonRequest;
-  }
-  
-  
-  @Override
-  public JAgoraNodeID getLatestArgumentID() {
-      JAgoraNodeID ret = null;
-      
-      
-      return ret;
-  }
-  
   //ADD ARGUMENT WITH ATTACKS
   
   @Override
@@ -449,6 +435,60 @@ public class JAgoraLib implements IJAgoraLib {
       }
       
       return (ref != null);
+  }
+  
+  //EDIT ARGUMENT
+  
+  protected BasicBSONObject constructEditArgumentRequest(BasicBSONObject content, JAgoraNodeID nodeID) {
+      BasicBSONObject bsonRequest = constructBasicRequest();
+      bsonRequest.put(ACTION_FIELD, EDIT_ARGUMENT_ACTION);
+      bsonRequest.put(ARGUMENT_ID_FIELD, new BSONGraphEncoder().BSONiseNodeID(nodeID));
+      bsonRequest.put(CONTENT_FIELD, content);
+      return bsonRequest;
+  }
+  
+  protected boolean parseEditArgumentResponse(BasicBSONObject bson) {
+      int response = bson.getInt(RESPONSE_FIELD);
+      if (response == SERVER_FAIL) {
+      Log.error("[JAgoraLib] Could not edit argument (" + bson.getString(REASON_FIELD) + ")");
+      return false;
+  }
+   
+   return true;
+  }
+  
+  @Override
+  public boolean editArgument(BasicBSONObject content, JAgoraNodeID nodeID) {
+      if (!isConnected()) {
+     Log.error("[JAgoraLib] Querying but not connected.");
+     return false;
+   }
+   
+   Socket s = openConnection();
+   if (s == null) {
+     Log.error("[JAgoraLib] Could not open connection for edit argument query.");
+     return false;
+   }
+   
+   boolean success = JAgoraComms.writeBSONObjectToSocket(s, constructEditArgumentRequest(content, nodeID));
+   if (!success) {
+     Log.error("[JAgoraLib] Could not write editArgument query.");
+     return false;
+   }
+   
+   BasicBSONObject response = JAgoraComms.readBSONObjectFromSocket(s);
+   if (response == null) {
+     Log.error("[JAgoraLib] Could not read editArgument response.");
+     return false;
+   }
+   
+   success = parseEditArgumentResponse(response);
+   if(!success){
+     Log.error("[JAgoraLib] Could not editArgument.");
+     return false;
+   }
+   
+   return true;
   }
   
   
