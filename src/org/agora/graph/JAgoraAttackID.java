@@ -1,18 +1,18 @@
 package org.agora.graph;
 
-public class JAgoraEdgeID {
-  protected JAgoraNodeID originID;
-	protected JAgoraNodeID targetID;
+public class JAgoraAttackID {
+  protected JAgoraArgumentID originID;
+	protected JAgoraArgumentID targetID;
 	
-	public JAgoraEdgeID(JAgoraNodeID originID, JAgoraNodeID targetID) {
+	public JAgoraAttackID(JAgoraArgumentID originID, JAgoraArgumentID targetID) {
 		this.originID = originID;
 		this.targetID = targetID;
 	}
 	
-	public JAgoraNodeID getOriginID() { return originID; }
-  public void setOriginID(JAgoraNodeID originID) { this.originID = originID; }
-  public JAgoraNodeID getTargetID() { return targetID; }
-  public void setTargetID(JAgoraNodeID targetID) { this.targetID = targetID; }
+	public JAgoraArgumentID getOriginID() { return originID; }
+  public void setOriginID(JAgoraArgumentID originID) { this.originID = originID; }
+  public JAgoraArgumentID getTargetID() { return targetID; }
+  public void setTargetID(JAgoraArgumentID targetID) { this.targetID = targetID; }
 
 
 
@@ -37,7 +37,7 @@ public class JAgoraEdgeID {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    JAgoraEdgeID other = (JAgoraEdgeID) obj;
+    JAgoraAttackID other = (JAgoraAttackID) obj;
     if (originID == null) {
       if (other.originID != null)
         return false;

@@ -2,7 +2,7 @@ package org.agora.lib;
 
 import java.util.ArrayList;
 import org.agora.graph.JAgoraGraph;
-import org.agora.graph.JAgoraNodeID;
+import org.agora.graph.JAgoraArgumentID;
 import org.agora.graph.JAgoraThread;
 import org.bson.BasicBSONObject;
 
@@ -68,14 +68,14 @@ public interface IJAgoraLib{
   boolean isConnected();
  
   
-  JAgoraNodeID addArgument(BasicBSONObject content, int threadID);
-  boolean addAttack(JAgoraNodeID attacker, JAgoraNodeID defender);
+  JAgoraArgumentID addArgument(BasicBSONObject content, int threadID);
+  boolean addAttack(JAgoraArgumentID attacker, JAgoraArgumentID defender);
   
-  boolean addArgumentWithAttacks(BasicBSONObject content, int threadID, ArrayList<JAgoraNodeID> defenders);
-  boolean editArgument(BasicBSONObject content, JAgoraNodeID id);
+  boolean addArgumentWithAttacks(BasicBSONObject content, int threadID, ArrayList<JAgoraArgumentID> defenders);
+  boolean editArgument(BasicBSONObject content, JAgoraArgumentID id);
   
-  boolean addArgumentVote(JAgoraNodeID nodeID, int voteType);
-  boolean addAttackVote(JAgoraNodeID attacker, JAgoraNodeID defender, int voteType);
+  boolean addArgumentVote(JAgoraArgumentID nodeID, int voteType);
+  boolean addAttackVote(JAgoraArgumentID attacker, JAgoraArgumentID defender, int voteType);
   
   /**
    * Connects to the database and obtains the graph associated

@@ -4,22 +4,22 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 import org.agora.graph.JAgoraGraph;
-import org.agora.graph.JAgoraNode;
-import org.agora.graph.JAgoraEdge;
-import org.agora.graph.JAgoraNodeID;
+import org.agora.graph.JAgoraArgument;
+import org.agora.graph.JAgoraAttack;
+import org.agora.graph.JAgoraArgumentID;
 import org.bson.BasicBSONObject;
 import org.bson.types.BasicBSONList;
 
 public class BSONGraphDecoder {
 
-  public JAgoraNodeID deBSONiseNodeID(BasicBSONObject bsonNodeID) {
-    return new JAgoraNodeID(bsonNodeID.getString("source"),
+  public JAgoraArgumentID deBSONiseNodeID(BasicBSONObject bsonNodeID) {
+    return new JAgoraArgumentID(bsonNodeID.getString("source"),
         bsonNodeID.getInt("id"));
   }
 
-  public JAgoraNode deBSONiseNode(BasicBSONObject bsonNode) {
-    JAgoraNodeID nodeID = deBSONiseNodeID((BasicBSONObject) bsonNode.get("id"));
-    JAgoraNode node = new JAgoraNode(nodeID);
+  public JAgoraArgument deBSONiseNode(BasicBSONObject bsonNode) {
+    JAgoraArgumentID nodeID = deBSONiseNodeID((BasicBSONObject) bsonNode.get("id"));
+    JAgoraArgument node = new JAgoraArgument(nodeID);
 
     node.setPosterID(bsonNode.getInt("posterID"));
     node.setPosterName(bsonNode.getString("posterName"));
@@ -31,27 +31,27 @@ public class BSONGraphDecoder {
     return node;
   }
 
-  public JAgoraEdge deBSONiseEdge(BasicBSONObject bsonEdge, JAgoraGraph graph) {
-    JAgoraNodeID originID = deBSONiseNodeID((BasicBSONObject) bsonEdge.get("origin"));
-    JAgoraNodeID targetID = deBSONiseNodeID((BasicBSONObject) bsonEdge.get("target"));
+  public JAgoraAttack deBSONiseEdge(BasicBSONObject bsonEdge, JAgoraGraph graph) {
+    JAgoraArgumentID originID = deBSONiseNodeID((BasicBSONObject) bsonEdge.get("origin"));
+    JAgoraArgumentID targetID = deBSONiseNodeID((BasicBSONObject) bsonEdge.get("target"));
 
     // Check whether the origin nodes are or are not in the graph.
     // If they are not, simply add a node containing only an ID.
     // That should be enough to ask for it in case it's interesting.
-    JAgoraNode originNode = null;
-    JAgoraNode targetNode = null;
+    JAgoraArgument originNode = null;
+    JAgoraArgument targetNode = null;
 
     if (graph.isInGraph(originID))
       originNode = graph.getNodeByID(originID);
     else
-      originNode = new JAgoraNode(originID);
+      originNode = new JAgoraArgument(originID);
 
     if (graph.isInGraph(targetID))
       targetNode = graph.getNodeByID(targetID);
     else
-      targetNode = new JAgoraNode(targetID);
+      targetNode = new JAgoraArgument(targetID);
 
-    JAgoraEdge e = new JAgoraEdge();
+    JAgoraAttack e = new JAgoraAttack();
     e.construct(originNode, targetNode);
 
     return e;

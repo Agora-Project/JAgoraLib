@@ -1,22 +1,22 @@
 package org.agora.lib;
 
-import org.agora.graph.JAgoraEdge;
+import org.agora.graph.JAgoraAttack;
 import org.agora.graph.JAgoraGraph;
-import org.agora.graph.JAgoraNode;
-import org.agora.graph.JAgoraNodeID;
+import org.agora.graph.JAgoraArgument;
+import org.agora.graph.JAgoraArgumentID;
 import org.bson.BasicBSONObject;
 import org.bson.types.BasicBSONList;
 
 public class BSONGraphEncoder {
   
-  public BasicBSONObject BSONiseNodeID(JAgoraNodeID nodeID) {
+  public BasicBSONObject BSONiseNodeID(JAgoraArgumentID nodeID) {
     BasicBSONObject bson = new BasicBSONObject();
     bson.put("source", nodeID.getSource());
     bson.put("id", nodeID.getLocalID());
     return bson;
   }
 
-  public BasicBSONObject BSONiseNode(JAgoraNode node) {
+  public BasicBSONObject BSONiseNode(JAgoraArgument node) {
     BasicBSONObject bson = new BasicBSONObject();
     bson.put("id", BSONiseNodeID(node.getID()));
     bson.put("posterName", node.getPosterName());
@@ -28,7 +28,7 @@ public class BSONGraphEncoder {
     return bson;
   }
 
-  public BasicBSONObject BSONiseEdge(JAgoraEdge edge) {
+  public BasicBSONObject BSONiseEdge(JAgoraAttack edge) {
     BasicBSONObject bson = new BasicBSONObject();
     bson.put("origin", BSONiseNodeID(edge.getOrigin().getID()));
     bson.put("target", BSONiseNodeID(edge.getTarget().getID()));
@@ -40,7 +40,7 @@ public class BSONGraphEncoder {
 
     // Add nodes.
     BasicBSONList bsonNodeList = new BasicBSONList();
-    JAgoraNode[] nodes = graph.getNodes();
+    JAgoraArgument[] nodes = graph.getNodes();
     for (int i = 0; i < nodes.length; i++) {
       bsonNodeList.add(BSONiseNode(nodes[i]));
     }
@@ -49,7 +49,7 @@ public class BSONGraphEncoder {
 
     // Add edges.
     BasicBSONList bsonEdgeList = new BasicBSONList();
-    for (JAgoraEdge e : graph.edgeMap.values()) {
+    for (JAgoraAttack e : graph.edgeMap.values()) {
       bsonEdgeList.add(BSONiseEdge(e));
     }
 

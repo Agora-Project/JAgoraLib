@@ -1,16 +1,16 @@
 package org.agora.graph;
 
 
-public class JAgoraNodeID {
+public class JAgoraArgumentID {
 	protected String source;
 	protected Integer localID;
 	
-	public JAgoraNodeID() {
+	public JAgoraArgumentID() {
 	  source = null;
 	  localID = null;
 	}
 	
-	public JAgoraNodeID(String source, Integer localID) {
+	public JAgoraArgumentID(String source, Integer localID) {
 	  this.source = source;
 	  this.localID = localID;
 	}
@@ -41,7 +41,7 @@ public class JAgoraNodeID {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    JAgoraNodeID other = (JAgoraNodeID) obj;
+    JAgoraArgumentID other = (JAgoraArgumentID) obj;
     if (localID == null) {
       if (other.localID != null)
         return false;

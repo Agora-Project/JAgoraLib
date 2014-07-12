@@ -3,7 +3,7 @@ package org.agora;
 import java.util.*;
 
 import org.agora.graph.JAgoraGraph;
-import org.agora.graph.JAgoraNodeID;
+import org.agora.graph.JAgoraArgumentID;
 import org.agora.lib.*;
 import org.agora.logging.*;
 import org.bson.BasicBSONObject;
@@ -128,8 +128,8 @@ public class TextClient {
       return;
     }
     
-    JAgoraNodeID attacker = new JAgoraNodeID(tokens[1], Integer.parseInt(tokens[2]));
-    JAgoraNodeID defender = new JAgoraNodeID(tokens[3], Integer.parseInt(tokens[4]));
+    JAgoraArgumentID attacker = new JAgoraArgumentID(tokens[1], Integer.parseInt(tokens[2]));
+    JAgoraArgumentID defender = new JAgoraArgumentID(tokens[3], Integer.parseInt(tokens[4]));
     
     if (lib.addAttack(attacker, defender))
       System.out.println("Attack added!");
@@ -143,8 +143,8 @@ public class TextClient {
       return;
     }
     
-    JAgoraNodeID attacker = new JAgoraNodeID(tokens[1], Integer.parseInt(tokens[2]));
-    JAgoraNodeID defender = new JAgoraNodeID(tokens[3], Integer.parseInt(tokens[4]));
+    JAgoraArgumentID attacker = new JAgoraArgumentID(tokens[1], Integer.parseInt(tokens[2]));
+    JAgoraArgumentID defender = new JAgoraArgumentID(tokens[3], Integer.parseInt(tokens[4]));
     int voteType = Integer.parseInt(tokens[5]);
     if(voteType != 0 && voteType != 1) {
       System.out.println("Vote types are 0 or 1 only.");
@@ -163,7 +163,7 @@ public class TextClient {
       return;
     }
     
-    JAgoraNodeID nodeID = new JAgoraNodeID(tokens[1], Integer.parseInt(tokens[2]));
+    JAgoraArgumentID nodeID = new JAgoraArgumentID(tokens[1], Integer.parseInt(tokens[2]));
     int voteType = Integer.parseInt(tokens[3]);
     if(voteType != 0 && voteType != 1) {
       System.out.println("Vote types are 0 or 1 only.");

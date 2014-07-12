@@ -9,8 +9,8 @@ import java.util.List;
 
 import org.bson.BSONObject;
 
-public class JAgoraNode {
-	protected JAgoraNodeID id;
+public class JAgoraArgument {
+	protected JAgoraArgumentID id;
 	
 	protected String posterName;
 	protected int posterID;
@@ -23,48 +23,48 @@ public class JAgoraNode {
 	
 	protected int threadID;
 
-	protected List<JAgoraEdge> incomingEdges;
-	protected List<JAgoraEdge> outgoingEdges;
+	protected List<JAgoraAttack> incomingEdges;
+	protected List<JAgoraAttack> outgoingEdges;
 	
 	protected VoteInformation votes; 
 
-	public JAgoraNode() {
-	  incomingEdges = new LinkedList<JAgoraEdge>();
-    outgoingEdges = new LinkedList<JAgoraEdge>();
+	public JAgoraArgument() {
+	  incomingEdges = new LinkedList<JAgoraAttack>();
+    outgoingEdges = new LinkedList<JAgoraAttack>();
 	}
 	
-	public void construct(JAgoraNodeID nodeID) {
+	public void construct(JAgoraArgumentID nodeID) {
 	  this.id = nodeID;
 	}
 	
-	public JAgoraNode(JAgoraNodeID nodeID) {
+	public JAgoraArgument(JAgoraArgumentID nodeID) {
 	  this();
 	  construct(nodeID);
 	}
 	
-	public JAgoraNode(String source, Integer ID) {
+	public JAgoraArgument(String source, Integer ID) {
 	  this();
-	  construct(new JAgoraNodeID(source, ID));
+	  construct(new JAgoraArgumentID(source, ID));
 	}
 
 	/**
 	 * Adds an edge to the node
 	 * @param att
 	 */
-	public void addIncomingEdge(JAgoraEdge arg) { incomingEdges.add(arg); }
-	public void addOutgoingEdge(JAgoraEdge arg) { outgoingEdges.add(arg); }
+	public void addIncomingEdge(JAgoraAttack arg) { incomingEdges.add(arg); }
+	public void addOutgoingEdge(JAgoraAttack arg) { outgoingEdges.add(arg); }
 	
 	public int getNumber() { return id.getLocalID(); }
 	public String getSource() { return id.getSource(); }
 
 
-	public Iterator<JAgoraEdge> getIncomingEdges() { return incomingEdges.iterator(); }
-	public Iterator<JAgoraEdge> getOutgoingEdges() { return outgoingEdges.iterator(); }
+	public Iterator<JAgoraAttack> getIncomingEdges() { return incomingEdges.iterator(); }
+	public Iterator<JAgoraAttack> getOutgoingEdges() { return outgoingEdges.iterator(); }
 	
-        public ArrayList<JAgoraEdge> getIncomingEdgeList() {return new ArrayList<>(incomingEdges);}
-        public ArrayList<JAgoraEdge> getOutgoingEdgeList() {return new ArrayList<>(outgoingEdges);}
+  public ArrayList<JAgoraAttack> getIncomingEdgeList() {return new ArrayList<>(incomingEdges);}
+  public ArrayList<JAgoraAttack> getOutgoingEdgeList() {return new ArrayList<>(outgoingEdges);}
 	
-	public JAgoraNodeID getID() { return id; }
+	public JAgoraArgumentID getID() { return id; }
   public String getPosterName() { return posterName; }
   public int getPosterID() { return posterID; }
   public Date getDate() { return date; }
@@ -72,7 +72,7 @@ public class JAgoraNode {
   public int getThreadID() { return threadID; }
   public BSONObject getContent() { return content; }
   
-  public void setID(JAgoraNodeID id) { this.id = id; }
+  public void setID(JAgoraArgumentID id) { this.id = id; }
   public void setPosterName(String posterName) { this.posterName = posterName; }
   public void setPosterID(int id) { this.posterID = id ; }
   public void setDate(Date date) { this.date = date; }

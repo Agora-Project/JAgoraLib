@@ -5,33 +5,33 @@ import java.util.Map;
 
 public class JAgoraGraph {
 
-	protected Map<JAgoraNodeID, JAgoraNode> nodeMap;
+	protected Map<JAgoraArgumentID, JAgoraArgument> nodeMap;
 	
 	// TODO: make this public and fix problems
-	public Map<JAgoraEdgeID, JAgoraEdge> edgeMap;
+	public Map<JAgoraAttackID, JAgoraAttack> edgeMap;
 
-	protected JAgoraNode[] nodes;
+	protected JAgoraArgument[] nodes;
 
   public JAgoraGraph() {
-    nodeMap = new HashMap<JAgoraNodeID, JAgoraNode>();
-    edgeMap = new HashMap<JAgoraEdgeID, JAgoraEdge>();
+    nodeMap = new HashMap<JAgoraArgumentID, JAgoraArgument>();
+    edgeMap = new HashMap<JAgoraAttackID, JAgoraAttack>();
   }
 
-  public void addNode(JAgoraNode node) { nodeMap.put(node.getID(), node); }
+  public void addNode(JAgoraArgument node) { nodeMap.put(node.getID(), node); }
 
 	/**
 	 * Adds edge to the Graph and to the respective nodes.
 	 * @param edge
 	 */
-	public void addEdge(JAgoraEdge edge) {
+	public void addEdge(JAgoraAttack edge) {
 		edgeMap.put(edge.getID(), edge);
 		edge.getOrigin().addOutgoingEdge(edge);
 		edge.getTarget().addIncomingEdge(edge);
 	}
 
 
-  public boolean isInGraph(JAgoraNodeID id) { return nodeMap.containsKey(id); }
-	public JAgoraNode getNodeByID(JAgoraNodeID id) { return nodeMap.get(id); }
-	public JAgoraNode[] getNodes() { return nodeMap.values().toArray(new JAgoraNode[0]); }
+  public boolean isInGraph(JAgoraArgumentID id) { return nodeMap.containsKey(id); }
+	public JAgoraArgument getNodeByID(JAgoraArgumentID id) { return nodeMap.get(id); }
+	public JAgoraArgument[] getNodes() { return nodeMap.values().toArray(new JAgoraArgument[0]); }
 
 }
