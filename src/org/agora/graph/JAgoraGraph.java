@@ -53,5 +53,6 @@ public class JAgoraGraph {
   public boolean isInGraph(JAgoraArgumentID id) { return nodeMap.containsKey(id); }
 	public JAgoraArgument getNodeByID(JAgoraArgumentID id) { return nodeMap.get(id); }
 	public JAgoraArgument[] getNodes() { return nodeMap.values().toArray(new JAgoraArgument[0]); }
+        public JAgoraAttack[] getAttacks() { return edgeMap.values().toArray(new JAgoraAttack[0]); }
 
 }
