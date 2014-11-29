@@ -46,6 +46,12 @@ public class JAgoraArgument {
 	  this();
 	  construct(new JAgoraArgumentID(source, ID));
 	}
+        
+        public String getText() {
+            if (content.containsField("Text")) return (String) content.get("Text");
+            if (content.containsField("txt")) return (String) content.get("txt");
+            return "Error: No Text";
+        }
 
 	/**
 	 * Adds an edge to the node
