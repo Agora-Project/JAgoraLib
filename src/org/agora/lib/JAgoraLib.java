@@ -733,4 +733,59 @@ public class JAgoraLib implements IJAgoraLib {
   public boolean isConnected() {
     return sessionID != null;
   }
+
+  protected BasicBSONObject constructGetThreadByArgumentIDRequest(JAgoraArgumentID id) {
+    BSONGraphEncoder enc = new BSONGraphEncoder();
+    BasicBSONObject bsonRequest = constructBasicRequest();
+    bsonRequest.put(ACTION_FIELD, QUERY_BY_ARGUMENT_ID_ACTION);
+    bsonRequest.put(ARGUMENT_ID_FIELD, enc.BSONiseNodeID(id));
+    return bsonRequest;
+  }
+  
+  protected JAgoraGraph parseQueryByArgumentIDResponse(BasicBSONObject bson) {
+    int response = bson.getInt(RESPONSE_FIELD);
+    if (response == SERVER_FAIL) {
+      Log.error("[JAgoraLib] Could not get thread (" + bson.getString(REASON_FIELD) + ")");
+      return null;
+    }
+    
+    JAgoraGraph g = graphDecoder.deBSONiseGraph((BasicBSONObject)bson.get(GRAPH_FIELD));
+    return g;
+  }
+  
+  @Override
+  public JAgoraGraph getThreadByArgumetID(JAgoraArgumentID id) {
+    if (!isConnected()) {
+      Log.error("[JAgoraLib] Querying but not connected.");
+      return null;
+    }
+    
+    Socket s = openConnection();
+    if (s == null) {
+      Log.error("[JAgoraLib] Could not open connection for thread query.");
+      return null;
+    }
+    
+    boolean success = JAgoraComms.writeBSONObjectToSocket(s, constructGetThreadByArgumentIDRequest(id));
+    if (!success) {
+      Log.error("[JAgoraLib] Could not write getThreadByID query.");
+      return null;
+    }
+    
+    BasicBSONObject response = JAgoraComms.readBSONObjectFromSocket(s);
+    if (response == null) {
+      Log.error("[JAgoraLib] Could not read getThreadByID response.");
+      return null;
+    }
+    
+    JAgoraGraph graph = parseQueryByArgumentIDResponse(response);
+    
+    success = graph != null;
+    if(!success){
+      Log.error("[JAgoraLib] Could not getThreadByID.");
+      return null;
+    }
+    
+    return graph;
+  }
 }

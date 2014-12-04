@@ -19,6 +19,7 @@ public interface IJAgoraLib{
   public final static int REGISTER_ACTION = 7;
   public final static int QUERY_THREAD_LIST_ACTION = 8;
   public final static int EDIT_ARGUMENT_ACTION = 9;
+  public final static int QUERY_BY_ARGUMENT_ID_ACTION = 10;
   
   
   public final static String USER_ID_FIELD = "id";
@@ -90,4 +91,6 @@ public interface IJAgoraLib{
   JAgoraGraph getThreadByID(int threadID);
   
   ArrayList<JAgoraThread> getThreadList();
+  
+  JAgoraGraph getThreadByArgumetID(JAgoraArgumentID id);
 }
