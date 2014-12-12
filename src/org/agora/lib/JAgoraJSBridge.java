@@ -20,6 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
 import netscape.javascript.*;
+import org.agora.graph.JAgoraArgumentID;
 import org.agora.graph.JAgoraGraph;
 import org.agora.graph.JAgoraThread;
 import org.agora.logging.ConsoleLog;
@@ -81,6 +82,10 @@ public class JAgoraJSBridge extends JApplet {
     
     public JAgoraGraph getThread(int threadID) {
         return lib.getThreadByID(threadID);
+    }
+    
+    public JAgoraGraph getArgumentbyID(JAgoraArgumentID id) {
+        return lib.getThreadByArgumetID(id);
     }
 	
 }

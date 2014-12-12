@@ -2,6 +2,7 @@ package org.agora.graph;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.agora.logging.Log;
 
 public class JAgoraGraph {
 
@@ -38,13 +39,19 @@ public class JAgoraGraph {
                         break;
                     }
                 }
+                if (!alreadyPresent) addNode(arg);
             }
             
             for (JAgoraAttack attack : graph.edgeMap.values().toArray(new JAgoraAttack[0])) {
-                if (!edgeMap.containsValue(attack) 
-                  && nodeMap.containsValue(attack.getOrigin()) 
-                  && nodeMap.containsValue(attack.getTarget()))
-                    edgeMap.put(attack.getID(), attack);
+                boolean addAttack = true;
+                for (JAgoraAttack localAttack : edgeMap.values().toArray(new JAgoraAttack[0])) {
+                    if (attack.id.equals(localAttack.id)) {
+                        addAttack = false;
+                        break;
+                    }
+                }
+                
+                if (addAttack) edgeMap.put(attack.getID(), attack);
             }
             
         }
