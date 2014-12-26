@@ -30,6 +30,13 @@ public class JAgoraGraph {
 		edge.getTarget().addIncomingEdge(edge);
 	}
         
+        public void removeNode(JAgoraArgumentID id) {
+            for (JAgoraArgumentID localID : nodeMap.keySet()) {
+                if (localID.equals(id)) nodeMap.remove(localID);
+            }
+            
+        }
+        
         public void merge(JAgoraGraph graph) {
             for (JAgoraArgument arg : graph.getNodes()) {
                 boolean alreadyPresent = false;
