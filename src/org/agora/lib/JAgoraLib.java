@@ -231,10 +231,20 @@ public class JAgoraLib implements IJAgoraLib {
   
   
   /**
-   * Constructs an empty response based on this Lib's user ID and session ID.
+   * Constructs an empty response.
    * @return Basic, empty response BSON object.
    */
   protected BasicBSONObject constructBasicRequest() {
+    BasicBSONObject request = new BasicBSONObject();
+    request.put(USER_ID_FIELD, 0);
+    return request;
+  }
+  
+  /**
+   * Constructs an empty response based on this Lib's user ID and session ID.
+   * @return Basic, empty response BSON object.
+   */
+  protected BasicBSONObject constructBasicSessionRequest() {
     if (!isConnected())
       return null;
     BasicBSONObject request = new BasicBSONObject();
@@ -247,7 +257,7 @@ public class JAgoraLib implements IJAgoraLib {
   // LOGOUT
   
   protected BasicBSONObject constructLogoutRequest() {
-    BasicBSONObject bsonRequest = constructBasicRequest();
+    BasicBSONObject bsonRequest = constructBasicSessionRequest();
     bsonRequest.put(ACTION_FIELD, LOGOUT_ACTION);
     return bsonRequest;
   }
@@ -310,7 +320,7 @@ public class JAgoraLib implements IJAgoraLib {
   // ADD ARGUMENT REQUEST
   
   protected BasicBSONObject constructaAddArgumentRequest(BasicBSONObject content, int threadID) {
-    BasicBSONObject bsonRequest = constructBasicRequest(); // Contains user ID already
+    BasicBSONObject bsonRequest = constructBasicSessionRequest(); // Contains user ID already
     bsonRequest.put(ACTION_FIELD, ADD_ARGUMENT_ACTION);
     bsonRequest.put(CONTENT_FIELD, content);
     bsonRequest.put(THREAD_ID_FIELD, threadID);
@@ -369,7 +379,7 @@ public class JAgoraLib implements IJAgoraLib {
   // ADD ATTACK
   
   protected BasicBSONObject constructaAddAttackRequest(JAgoraArgumentID attacker, JAgoraArgumentID defender) {
-    BasicBSONObject bsonRequest = constructBasicRequest(); // Contains user ID already
+    BasicBSONObject bsonRequest = constructBasicSessionRequest(); // Contains user ID already
     
     BSONGraphEncoder enc = new BSONGraphEncoder();
     
@@ -440,7 +450,7 @@ public class JAgoraLib implements IJAgoraLib {
   //EDIT ARGUMENT
   
   protected BasicBSONObject constructEditArgumentRequest(BasicBSONObject content, JAgoraArgumentID nodeID) {
-      BasicBSONObject bsonRequest = constructBasicRequest();
+      BasicBSONObject bsonRequest = constructBasicSessionRequest();
       bsonRequest.put(ACTION_FIELD, EDIT_ARGUMENT_ACTION);
       bsonRequest.put(ARGUMENT_ID_FIELD, new BSONGraphEncoder().BSONiseNodeID(nodeID));
       bsonRequest.put(CONTENT_FIELD, content);
@@ -495,7 +505,7 @@ public class JAgoraLib implements IJAgoraLib {
 //ADD ARGUMENT VOTE REQUEST
   
  protected BasicBSONObject constructaAddArgumentVoteRequest(JAgoraArgumentID nodeID, int voteType) {
-   BasicBSONObject bsonRequest = constructBasicRequest(); // Contains user ID already
+   BasicBSONObject bsonRequest = constructBasicSessionRequest(); // Contains user ID already
    bsonRequest.put(ACTION_FIELD, ADD_ARGUMENT_VOTE_ACTION);
    bsonRequest.put(VOTE_TYPE_FIELD, voteType);
    bsonRequest.put(ARGUMENT_ID_FIELD, new BSONGraphEncoder().BSONiseNodeID(nodeID));
@@ -551,7 +561,7 @@ public class JAgoraLib implements IJAgoraLib {
  // ADD ATTACK VOTE 
  
  protected BasicBSONObject constructaAddAttackVoteRequest(JAgoraArgumentID attacker, JAgoraArgumentID defender, int voteType) {
-   BasicBSONObject bsonRequest = constructBasicRequest(); // Contains user ID already
+   BasicBSONObject bsonRequest = constructBasicSessionRequest(); // Contains user ID already
    
    BSONGraphEncoder enc = new BSONGraphEncoder();
    
@@ -636,10 +646,10 @@ public class JAgoraLib implements IJAgoraLib {
   @Override
   public ArrayList<JAgoraThread> getThreadList() {
       
-      if (!isConnected()) {
-      Log.error("[JAgoraLib] Querying but not connected.");
-      return null;
-    }
+//      if (!isConnected()) {
+//      Log.error("[JAgoraLib] Querying but not connected.");
+//      return null;
+//    }
     
     Socket s = openConnection();
     if (s == null) {
@@ -695,10 +705,10 @@ public class JAgoraLib implements IJAgoraLib {
   
   @Override
   public JAgoraGraph getThreadByID(int threadID) {
-    if (!isConnected()) {
-      Log.error("[JAgoraLib] Querying but not connected.");
-      return null;
-    }
+//    if (!isConnected()) {
+//      Log.error("[JAgoraLib] Querying but not connected.");
+//      return null;
+//    }
     
     Socket s = openConnection();
     if (s == null) {
@@ -755,10 +765,10 @@ public class JAgoraLib implements IJAgoraLib {
   
   @Override
   public JAgoraGraph getThreadByArgumetID(JAgoraArgumentID id) {
-    if (!isConnected()) {
-      Log.error("[JAgoraLib] Querying but not connected.");
-      return null;
-    }
+//    if (!isConnected()) {
+//      Log.error("[JAgoraLib] Querying but not connected.");
+//      return null;
+//    }
     
     Socket s = openConnection();
     if (s == null) {
@@ -780,7 +790,7 @@ public class JAgoraLib implements IJAgoraLib {
     
     JAgoraGraph graph = parseQueryByArgumentIDResponse(response);
     
-    success = graph != null;
+    success = (graph != null);
     if(!success){
       Log.error("[JAgoraLib] Could not getThreadByID.");
       return null;

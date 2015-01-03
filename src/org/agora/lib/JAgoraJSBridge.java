@@ -35,13 +35,12 @@ public class JAgoraJSBridge extends JApplet {
     private JAgoraLib lib;
     ArrayList<JAgoraThread> threadList;
     boolean running = false;		// Am I still running?
-    String address = "127.0.0.1";			// Where you will connect to
-    int port = 1597;					// Port
+    String address;			// Where you will connect to
+    int port;					// Port
 
     // Initialize
     public void init(){
         browser = JSObject.getWindow(this);
-        lib = new JAgoraLib(address, port);
         threadList = new ArrayList<>();
         Log.addLog(new ConsoleLog());
     }
@@ -53,6 +52,12 @@ public class JAgoraJSBridge extends JApplet {
             browser.call("javaSocketBridgeReady", null);
             running = true;
 
+    }
+    
+    public void startLib(String address, int port) {
+        this.address = address;
+        this.port = port;
+        lib = new JAgoraLib(address, port);
     }
 
     public void stop() {
