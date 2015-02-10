@@ -4,9 +4,10 @@ import java.util.ArrayList;
 import org.agora.graph.JAgoraGraph;
 import org.agora.graph.JAgoraArgumentID;
 import org.agora.graph.JAgoraThread;
+import org.agora.logging.Log;
 import org.bson.BasicBSONObject;
 
-public interface IJAgoraLib{
+public abstract class IJAgoraLib{
   // Communication codes!
   // Private constants for constructing messages.
   public final static int LOGIN_ACTION = 0;
@@ -46,6 +47,51 @@ public interface IJAgoraLib{
   public final static int SERVER_OK = 0;
   public final static int SERVER_FAIL = 1;
   
+  protected int userID;
+  protected String sessionID;
+  protected String hostname;
+  protected int port;
+  
+  protected BSONGraphEncoder graphEncoder;
+  protected BSONGraphDecoder graphDecoder;
+  protected BSONThreadListEncoder threadListEncoder;
+  protected BSONThreadListDecoder threadListDecoder;
+  
+  // LOGIN REQUEST
+  
+  
+  /**
+   * Constructs an Agora protocol login request in BSON.
+   * @param user
+   * @param password
+   * @return
+   */
+  protected BasicBSONObject constructLoginRequest(String user, String password) {
+    BasicBSONObject bson = new BasicBSONObject();
+    bson.put(ACTION_FIELD, IJAgoraLib.LOGIN_ACTION);
+    bson.put(USER_FIELD, user);
+    bson.put(PASSWORD_FIELD, password);
+    return bson;
+  }
+  
+  /**
+   * Tries to parse an Agora login response from BSON. Stores a session ID
+   * that should be used in all further communications.
+   * @param bson
+   * @return
+   */
+  protected boolean parseLoginResponse(BasicBSONObject bson) {
+    int response = bson.getInt(RESPONSE_FIELD);
+    if (response == SERVER_FAIL) {
+      Log.error("[JAgoraLib] Could not login (" + bson.getString(REASON_FIELD) + ")");
+      return false;
+    }
+    
+    // Success!
+    sessionID = bson.getString(SESSION_ID_FIELD);
+    userID = bson.getInt(USER_ID_FIELD);
+    return true;
+  }
   
   /**
    * Connects to the server and logs the user in. 
@@ -53,30 +99,239 @@ public interface IJAgoraLib{
    * @param password
    * @return
    */
-  boolean login(String user, String password);
+  abstract boolean login(String user, String password);
+  
+  //LOGIN REQUEST
+  
+  
+ /**
+  * Constructs an Agora protocol register request in BSON.
+  * @param user
+  * @param password
+  * @return
+  */
+ protected BasicBSONObject constructRegisterRequest(String user, String password, String email) {
+   BasicBSONObject bson = new BasicBSONObject();
+   bson.put(ACTION_FIELD, IJAgoraLib.REGISTER_ACTION);
+   bson.put(USER_FIELD, user);
+   bson.put(PASSWORD_FIELD, password);
+   bson.put(EMAIL_FIELD, email);
+   return bson;
+ }
+ 
+ /**
+  * Tries to parse an Agora register response from BSON.
+  * @param bson
+  * @return
+  */
+ protected boolean parseRegisterResponse(BasicBSONObject bson) {
+   int response = bson.getInt(RESPONSE_FIELD);
+   if (response == SERVER_FAIL) {
+     Log.error("[JAgoraLib] Could not register (" + bson.getString(REASON_FIELD) + ")");
+     return false;
+   }
+   
+   return true;
+ }
+ 
+ /**
+   * Constructs an empty response.
+   * @return Basic, empty response BSON object.
+   */
+  protected BasicBSONObject constructBasicRequest() {
+    BasicBSONObject request = new BasicBSONObject();
+    request.put(USER_ID_FIELD, 0);
+    return request;
+  }
+  
+  /**
+   * Constructs an empty response based on this Lib's user ID and session ID.
+   * @return Basic, empty response BSON object.
+   */
+  protected BasicBSONObject constructBasicSessionRequest() {
+    if (!isConnected())
+      return null;
+    BasicBSONObject request = new BasicBSONObject();
+    request.put(SESSION_ID_FIELD, sessionID);
+    request.put(USER_ID_FIELD, userID);
+    return request;
+  }
+  
+  
+  // LOGOUT
+  
+  protected BasicBSONObject constructLogoutRequest() {
+    BasicBSONObject bsonRequest = constructBasicSessionRequest();
+    bsonRequest.put(ACTION_FIELD, LOGOUT_ACTION);
+    return bsonRequest;
+  }
+  
+  protected boolean parseLogoutResponse(BasicBSONObject bson) {
+    int response = bson.getInt(RESPONSE_FIELD);
+    if (response == SERVER_FAIL) {
+      Log.error("[JAgoraLib] Could not logout (" + bson.getString(REASON_FIELD) + ")");
+      return false;
+    }
+    
+    userID = -1;
+    sessionID = null;
+    return true;
+  }
   
   /**
    * Logs the user out, if he is logged in.
    * @return
    */
-  boolean logout();
+  abstract boolean logout();
   
   
   /**
    * Checks whether there is an ongoing session.
    * @return
    */
-  boolean isConnected();
+  abstract boolean isConnected();
+  
+ // ADD ARGUMENT REQUEST
+  
+  protected BasicBSONObject constructaAddArgumentRequest(BasicBSONObject content, int threadID) {
+    BasicBSONObject bsonRequest = constructBasicSessionRequest(); // Contains user ID already
+    bsonRequest.put(ACTION_FIELD, ADD_ARGUMENT_ACTION);
+    bsonRequest.put(CONTENT_FIELD, content);
+    bsonRequest.put(THREAD_ID_FIELD, threadID);
+    return bsonRequest;
+  }
+  
+  protected JAgoraArgumentID parseAddArgumentResponse(BasicBSONObject bson) {
+    int response = bson.getInt(RESPONSE_FIELD);
+    if (response == SERVER_FAIL) {
+      Log.error("[JAgoraLib] Could not add argument (" + bson.getString(REASON_FIELD) + ")");
+      return null;
+    }
+    
+    BasicBSONObject ret = (BasicBSONObject) bson.get(ARGUMENT_ID_FIELD);
+    
+    return new JAgoraArgumentID(ret.getString("Source"), ret.getInt("ID"));
+  }
+  
+  
+  
+  abstract JAgoraArgumentID addArgument(BasicBSONObject content, int threadID);
+  
+  // ADD ATTACK
+  
+  protected BasicBSONObject constructaAddAttackRequest(JAgoraArgumentID attacker, JAgoraArgumentID defender) {
+    BasicBSONObject bsonRequest = constructBasicSessionRequest(); // Contains user ID already
+    
+    BSONGraphEncoder enc = new BSONGraphEncoder();
+    
+    bsonRequest.put(ACTION_FIELD, ADD_ATTACK_ACTION);
+    bsonRequest.put(ATTACKER_FIELD, enc.BSONiseNodeID(attacker));
+    bsonRequest.put(DEFENDER_FIELD, enc.BSONiseNodeID(defender));
+    return bsonRequest;
+  }
+  
+  protected boolean parseAddAttackResponse(BasicBSONObject bson) {
+    int response = bson.getInt(RESPONSE_FIELD);
+    if (response == SERVER_FAIL) {
+      Log.error("[JAgoraLib] Could not add attack (" + bson.getString(REASON_FIELD) + ")");
+      return false;
+    }
+    
+    return true;
+  }
+  
+  abstract boolean addAttack(JAgoraArgumentID attacker, JAgoraArgumentID defender);
+  abstract boolean addArgumentWithAttacks(BasicBSONObject content, int threadID, ArrayList<JAgoraArgumentID> defenders);
+  
+  //EDIT ARGUMENT
+  
+  protected BasicBSONObject constructEditArgumentRequest(BasicBSONObject content, JAgoraArgumentID nodeID) {
+      BasicBSONObject bsonRequest = constructBasicSessionRequest();
+      bsonRequest.put(ACTION_FIELD, EDIT_ARGUMENT_ACTION);
+      bsonRequest.put(ARGUMENT_ID_FIELD, new BSONGraphEncoder().BSONiseNodeID(nodeID));
+      bsonRequest.put(CONTENT_FIELD, content);
+      return bsonRequest;
+  }
+  
+  protected boolean parseEditArgumentResponse(BasicBSONObject bson) {
+      int response = bson.getInt(RESPONSE_FIELD);
+      if (response == SERVER_FAIL) {
+      Log.error("[JAgoraLib] Could not edit argument (" + bson.getString(REASON_FIELD) + ")");
+      return false;
+  }
+   
+   return true;
+  }
+  
+  abstract boolean editArgument(BasicBSONObject content, JAgoraArgumentID id);
+  
+  //ADD ARGUMENT VOTE REQUEST
+  
+ protected BasicBSONObject constructaAddArgumentVoteRequest(JAgoraArgumentID nodeID, int voteType) {
+   BasicBSONObject bsonRequest = constructBasicSessionRequest(); // Contains user ID already
+   bsonRequest.put(ACTION_FIELD, ADD_ARGUMENT_VOTE_ACTION);
+   bsonRequest.put(VOTE_TYPE_FIELD, voteType);
+   bsonRequest.put(ARGUMENT_ID_FIELD, new BSONGraphEncoder().BSONiseNodeID(nodeID));
+   return bsonRequest;
+ }
  
+ protected boolean parseAddArgumentVoteResponse(BasicBSONObject bson) {
+   int response = bson.getInt(RESPONSE_FIELD);
+   if (response == SERVER_FAIL) {
+     Log.error("[JAgoraLib] Could not add argument vote (" + bson.getString(REASON_FIELD) + ")");
+     return false;
+   }
+   
+   return true;
+ }
   
-  JAgoraArgumentID addArgument(BasicBSONObject content, int threadID);
-  boolean addAttack(JAgoraArgumentID attacker, JAgoraArgumentID defender);
+  abstract boolean addArgumentVote(JAgoraArgumentID nodeID, int voteType);
   
-  boolean addArgumentWithAttacks(BasicBSONObject content, int threadID, ArrayList<JAgoraArgumentID> defenders);
-  boolean editArgument(BasicBSONObject content, JAgoraArgumentID id);
+  // ADD ATTACK VOTE 
+ 
+ protected BasicBSONObject constructaAddAttackVoteRequest(JAgoraArgumentID attacker, JAgoraArgumentID defender, int voteType) {
+   BasicBSONObject bsonRequest = constructBasicSessionRequest(); // Contains user ID already
+   
+   BSONGraphEncoder enc = new BSONGraphEncoder();
+   
+   bsonRequest.put(ACTION_FIELD, ADD_ATTACK_VOTE_ACTION);
+   bsonRequest.put(ATTACKER_FIELD, enc.BSONiseNodeID(attacker));
+   bsonRequest.put(DEFENDER_FIELD, enc.BSONiseNodeID(defender));
+   bsonRequest.put(VOTE_TYPE_FIELD, voteType);
+   return bsonRequest;
+ }
+ 
+ protected boolean parseAddAttackVoteResponse(BasicBSONObject bson) {
+   int response = bson.getInt(RESPONSE_FIELD);
+   if (response == SERVER_FAIL) {
+     Log.error("[JAgoraLib] Could not add attack vote (" + bson.getString(REASON_FIELD) + ")");
+     return false;
+   }
+   
+   return true;
+ }
   
-  boolean addArgumentVote(JAgoraArgumentID nodeID, int voteType);
-  boolean addAttackVote(JAgoraArgumentID attacker, JAgoraArgumentID defender, int voteType);
+  abstract boolean addAttackVote(JAgoraArgumentID attacker, JAgoraArgumentID defender, int voteType);
+  
+  // GET THREAD BY ID REQUEST
+  
+  protected BasicBSONObject constructGetThreadByIDRequest(int threadID) {
+    BasicBSONObject bsonRequest = constructBasicRequest();
+    bsonRequest.put(ACTION_FIELD, QUERY_BY_THREAD_ID_ACTION);
+    bsonRequest.put(THREAD_ID_FIELD, threadID);
+    return bsonRequest;
+  }
+  
+  protected JAgoraGraph parseQueryByThreadIDResponse(BasicBSONObject bson) {
+    int response = bson.getInt(RESPONSE_FIELD);
+    if (response == SERVER_FAIL) {
+      Log.error("[JAgoraLib] Could not get thread (" + bson.getString(REASON_FIELD) + ")");
+      return null;
+    }
+    
+    JAgoraGraph g = graphDecoder.deBSONiseGraph((BasicBSONObject)bson.get(GRAPH_FIELD));
+    return g;
+  }
   
   /**
    * Connects to the database and obtains the graph associated
@@ -88,9 +343,47 @@ public interface IJAgoraLib{
    * @param threadID The thread id.
    * @return The graph representing the thread.
    */
-  JAgoraGraph getThreadByID(int threadID);
+  abstract JAgoraGraph getThreadByID(int threadID);
   
-  ArrayList<JAgoraThread> getThreadList();
+  //GET THREAD LIST
+ 
+  protected BasicBSONObject constructGetThreadListRequest() {
+    BasicBSONObject bsonRequest = constructBasicRequest();
+    bsonRequest.put(ACTION_FIELD, QUERY_THREAD_LIST_ACTION);
+    return bsonRequest;
+  }
   
-  JAgoraGraph getThreadByArgumetID(JAgoraArgumentID id);
+  protected ArrayList<JAgoraThread> parseGetThreadListResponse(BasicBSONObject bson) {
+      
+      int response = bson.getInt(RESPONSE_FIELD);
+      if (response == SERVER_FAIL) {
+         Log.error("[JAgoraLib] Could not get thread (" + bson.getString(REASON_FIELD) + ")");
+      return null;
+      }
+      ArrayList<JAgoraThread> threads = threadListDecoder.deBSONiseThreadList((BasicBSONObject) bson.get(THREAD_LIST_FIELD));
+      return threads;
+  }
+  
+  abstract ArrayList<JAgoraThread> getThreadList();
+  
+  protected BasicBSONObject constructGetThreadByArgumentIDRequest(JAgoraArgumentID id) {
+    BSONGraphEncoder enc = new BSONGraphEncoder();
+    BasicBSONObject bsonRequest = constructBasicRequest();
+    bsonRequest.put(ACTION_FIELD, QUERY_BY_ARGUMENT_ID_ACTION);
+    bsonRequest.put(ARGUMENT_ID_FIELD, enc.BSONiseNodeID(id));
+    return bsonRequest;
+  }
+  
+  protected JAgoraGraph parseQueryByArgumentIDResponse(BasicBSONObject bson) {
+    int response = bson.getInt(RESPONSE_FIELD);
+    if (response == SERVER_FAIL) {
+      Log.error("[JAgoraLib] Could not get thread (" + bson.getString(REASON_FIELD) + ")");
+      return null;
+    }
+    
+    JAgoraGraph g = graphDecoder.deBSONiseGraph((BasicBSONObject)bson.get(GRAPH_FIELD));
+    return g;
+  }
+  
+  abstract JAgoraGraph getThreadByArgumetID(JAgoraArgumentID id);
 }

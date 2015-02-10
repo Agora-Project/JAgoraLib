@@ -32,7 +32,7 @@ public class JAgoraJSBridge extends JApplet {
 
     // Instance variables
     JSObject browser = null;		// The browser
-    private JAgoraLib lib;
+    private IJAgoraLib lib;
     ArrayList<JAgoraThread> threadList;
     boolean running = false;		// Am I still running?
     String address;			// Where you will connect to
@@ -40,9 +40,11 @@ public class JAgoraJSBridge extends JApplet {
 
     // Initialize
     public void init(){
+        Log.addLog(new ConsoleLog());
         browser = JSObject.getWindow(this);
         threadList = new ArrayList<>();
-        Log.addLog(new ConsoleLog());
+        address = "50.97.175.55";
+        port = 27387;
     }
 
     // Main
@@ -54,10 +56,12 @@ public class JAgoraJSBridge extends JApplet {
 
     }
     
-    public void startLib(String address, int port) {
-        this.address = address;
-        this.port = port;
-        lib = new JAgoraLib(address, port);
+    public void startLib() {
+        try {
+            lib = new JAgoraLib(address, port);
+        } catch (Exception e) {
+            Log.error(e.getMessage());
+        }
     }
 
     public void stop() {
@@ -66,6 +70,10 @@ public class JAgoraJSBridge extends JApplet {
 
     public void destroy() {
         running = false;
+    }
+    
+    public JAgoraArgumentID findArgument(int id) {
+        return new JAgoraArgument(address, id).getID();
     }
 
     public boolean logIn(String user, String password) {
