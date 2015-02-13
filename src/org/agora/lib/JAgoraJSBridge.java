@@ -15,6 +15,7 @@ package org.agora.lib;
 //       them to the main applet thread.  That's the reason for all the confusing stuff
 //       in the connect methods... so that connections always happen on the main thread.
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,7 +33,7 @@ public class JAgoraJSBridge extends JApplet {
 
     // Instance variables
     JSObject browser = null;		// The browser
-    private IJAgoraLib lib;
+    private JAgoraWebsocketLib lib;
     ArrayList<JAgoraThread> threadList;
     boolean running = false;		// Am I still running?
     String address;			// Where you will connect to
@@ -58,7 +59,8 @@ public class JAgoraJSBridge extends JApplet {
     
     public void startLib() {
         try {
-            lib = new JAgoraLib(address, port);
+            lib = new JAgoraWebsocketLib();
+            lib.openConnection(new URI("ws://angle.webfactional.com/Agora/Websocket"));
         } catch (Exception e) {
             Log.error(e.getMessage());
         }

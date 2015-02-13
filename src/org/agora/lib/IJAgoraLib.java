@@ -57,6 +57,8 @@ public abstract class IJAgoraLib{
   protected BSONThreadListEncoder threadListEncoder;
   protected BSONThreadListDecoder threadListDecoder;
   
+  
+  
   // LOGIN REQUEST
   
   

@@ -1,10 +1,13 @@
 package org.agora.lib;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.websocket.Session;
 
 import org.agora.logging.Log;
 import org.bson.BSONDecoder;
@@ -56,6 +59,19 @@ public class JAgoraComms {
     
     return false;
   }
+  
+  public static boolean writeBSONObjectToWebSocket(Session s, BasicBSONObject bson) {
+    BSONEncoder benc = new BasicBSONEncoder();
+    byte[] b = benc.encode(bson);
+    
+    s.getAsyncRemote().sendBinary(ByteBuffer.wrap(b));
+    return true;
+    
+  }
+
+    static BasicBSONObject readBSONObjectFromWebSocket(DataInputStream stream) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }
 
 
