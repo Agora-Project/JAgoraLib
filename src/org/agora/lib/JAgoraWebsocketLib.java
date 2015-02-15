@@ -5,6 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -12,17 +13,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
+import javax.websocket.WebSocketContainer;
 import org.agora.graph.JAgoraArgumentID;
 import org.agora.graph.JAgoraGraph;
 import org.agora.graph.JAgoraThread;
 import org.agora.logging.Log;
 import org.bson.BasicBSONObject;
-import org.glassfish.tyrus.client.ClientManager;
 
 /**
  *
@@ -33,15 +35,14 @@ import org.glassfish.tyrus.client.ClientManager;
 public class JAgoraWebsocketLib extends IJAgoraLib {
     
     private final ClientEndpointConfig cec;
-    private final ClientManager client;
     private Session session;
     private BlockingQueue<byte[]> messages;
+    private WebSocketContainer client;
     
     public JAgoraWebsocketLib() {
         cec = ClientEndpointConfig.Builder.create().build();
-        client = ClientManager.createClient();
         messages = new LinkedBlockingQueue<>();
-        
+        client = ContainerProvider.getWebSocketContainer();
     }
     
     public DataInputStream getStream() throws InterruptedException {
@@ -50,21 +51,9 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
     
     public void openConnection(URI target) {
         try {
-            session = client.connectToServer(new Endpoint() {
-
-                @Override
-                public void onOpen(Session s, EndpointConfig ec) {
-                    s.addMessageHandler(new MessageHandler.Whole <byte[]>() {
-
-                        @Override
-                        public void onMessage(byte[] t) {
-                            messages.add(t);
-                        }
-                    });
-                }
-            }, cec, target);
+            session = client.connectToServer(new ClientEndpoint(), cec, target);
         } catch (DeploymentException ex) {
-            Log.error("[JAgoraLib] Could not connect to server.");
+            Log.error("[JAgoraLib] Could not connect to server: " + target.toString() + ", " + ex.getMessage());
         } catch (IOException ex) {
             Log.error("[JAgoraLib] Could not read incoming message");
         }
@@ -389,6 +378,24 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
         }
 
         return graph;
+    }
+    
+    
+    public class ClientEndpoint extends Endpoint{
+
+        public ClientEndpoint(){}
+        
+        @Override
+        public void onOpen(Session s, EndpointConfig config) {
+            s.addMessageHandler(new MessageHandler.Whole <byte[]>() {
+
+                @Override
+                public void onMessage(byte[] t) {
+                    messages.add(t);
+                }
+            });
+        }
+        
     }
     
 }

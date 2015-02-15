@@ -60,7 +60,7 @@ public class JAgoraJSBridge extends JApplet {
     public void startLib() {
         try {
             lib = new JAgoraWebsocketLib();
-            lib.openConnection(new URI("ws://angle.webfactional.com/Agora/Websocket"));
+            lib.openConnection(new URI("ws://" + getCodeBase().getHost() + ":" + getCodeBase().getPort() + getCodeBase().getPath() + "Websocket/Agora"));
         } catch (Exception e) {
             Log.error(e.getMessage());
         }
