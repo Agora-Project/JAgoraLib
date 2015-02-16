@@ -468,7 +468,7 @@ public class JAgoraLib extends IJAgoraLib {
   }
 
   @Override
-  public JAgoraGraph getThreadByArgumetID(JAgoraArgumentID id) {
+  public JAgoraGraph getThreadByArgumentID(JAgoraArgumentID id) {
 //    if (!isConnected()) {
 //      Log.error("[JAgoraLib] Querying but not connected.");
 //      return null;

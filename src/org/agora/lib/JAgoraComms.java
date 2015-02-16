@@ -3,11 +3,14 @@ package org.agora.lib;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.websocket.Session;
+import org.agora.lib.JAgoraWebsocketLib.ClientEndpoint;
 
 import org.agora.logging.Log;
 import org.bson.BSONDecoder;
@@ -15,6 +18,7 @@ import org.bson.BSONEncoder;
 import org.bson.BasicBSONObject;
 import org.bson.BasicBSONDecoder;
 import org.bson.BasicBSONEncoder;
+import org.java_websocket.client.WebSocketClient;
 
 public class JAgoraComms {
   
@@ -28,50 +32,61 @@ public class JAgoraComms {
       try {
           return readBSONObjectFromStream(s.getInputStream());
       } catch (IOException ex) {
-          Logger.getLogger(JAgoraComms.class.getName()).log(Level.SEVERE, null, ex);
+          Log.error("[JAgoraCommc] Could not read BSON object from socket: " + ex.getMessage());
       }
       return null;
   }
   
-  public static BasicBSONObject readBSONObjectFromStream(InputStream is) {
-      try {
+  public static BasicBSONObject readBSONObjectFromStream(InputStream is) throws IOException {
       BSONDecoder bdec = new BasicBSONDecoder();
-      return (BasicBSONObject)bdec.readObject(is);
-    } catch (IOException e) {
-      Log.error("Could not read BSON object from stream " + is);
-      Log.error(e.getMessage());
-    }
-    
-    return null; 
+      return (BasicBSONObject)bdec.readObject(is); 
+  }
+  
+  public static void writeBSONObjectToStream(OutputStream os, BasicBSONObject bson) throws IOException {
+      BSONEncoder benc = new BasicBSONEncoder();
+      byte[] b = benc.encode(bson);
+      
+      os.write(b);
   }
   
   public static boolean writeBSONObjectToSocket(Socket s, BasicBSONObject bson) {
-    BSONEncoder benc = new BasicBSONEncoder();
-    byte[] b = benc.encode(bson);
-    
     try {
-      s.getOutputStream().write(b);
+        writeBSONObjectToStream(s.getOutputStream(), bson);
       return true;
     } catch (IOException e) {
-      Log.error("Could not write BSON object to socket " + s);
-      Log.error(e.getMessage());
+      Log.error("[JAgoraComms] Could not write BSON object to socket: " + e.getMessage());
     }
     
     return false;
   }
   
-  public static boolean writeBSONObjectToWebSocket(Session s, BasicBSONObject bson) {
+  public static boolean writeBSONObjectToHTTPConnection(HttpURLConnection connection, BasicBSONObject bson) {
+      try {
+          writeBSONObjectToStream(connection.getOutputStream(), bson);
+      } catch (IOException ex) {
+          Log.error("[JAgoraComms] Writing to HTTP output stream failed: " + ex.getMessage());
+          return false;
+      }
+      return true;
+  }
+  
+  public static BasicBSONObject readBSONObjectFromHTTPConnection(HttpURLConnection connection) {
+      try {
+          return readBSONObjectFromStream(connection.getInputStream());
+      } catch (IOException ex) {
+          Log.error("[JAgoraComms] Could not read BSON object from HTTP: " + ex.getMessage());
+      }
+      return null;
+  }
+  
+  public static boolean writeBSONObjectToWebSocket(WebSocketClient client, BasicBSONObject bson) {
     BSONEncoder benc = new BasicBSONEncoder();
     byte[] b = benc.encode(bson);
     
-    s.getAsyncRemote().sendBinary(ByteBuffer.wrap(b));
+    client.send(b);
     return true;
     
   }
-
-    static BasicBSONObject readBSONObjectFromWebSocket(DataInputStream stream) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
 }
 
 

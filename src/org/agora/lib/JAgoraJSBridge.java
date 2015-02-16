@@ -16,6 +16,7 @@ package org.agora.lib;
 //       in the connect methods... so that connections always happen on the main thread.
 
 import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,7 +34,7 @@ public class JAgoraJSBridge extends JApplet {
 
     // Instance variables
     JSObject browser = null;		// The browser
-    private JAgoraWebsocketLib lib;
+    private IJAgoraLib lib;
     ArrayList<JAgoraThread> threadList;
     boolean running = false;		// Am I still running?
     String address;			// Where you will connect to
@@ -59,8 +60,8 @@ public class JAgoraJSBridge extends JApplet {
     
     public void startLib() {
         try {
-            lib = new JAgoraWebsocketLib();
-            lib.openConnection(new URI("ws://" + getCodeBase().getHost() + ":" + getCodeBase().getPort() + getCodeBase().getPath() + "Websocket/Agora"));
+            //lib = new JAgoraWebsocketLib(new URI("ws://" + getCodeBase().getHost() + ":" + getCodeBase().getPort() + getCodeBase().getPath() + "Websocket/Agora"));
+            lib = new JAgoraHTTPLib(new URL(getCodeBase() + "JAgoraHttpServer"));
         } catch (Exception e) {
             Log.error(e.getMessage());
         }
@@ -102,7 +103,11 @@ public class JAgoraJSBridge extends JApplet {
     }
     
     public JAgoraGraph getArgumentbyID(JAgoraArgumentID id) {
-        return lib.getThreadByArgumetID(id);
+        try {
+            return lib.getThreadByArgumentID(id);
+        } catch (Exception e) {
+            Log.error(e.getMessage());
+        } return null;
     }
     
     public boolean newArgument(String title, String text, JAgoraArgument[] posts) {

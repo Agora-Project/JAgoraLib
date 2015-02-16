@@ -57,8 +57,6 @@ public abstract class IJAgoraLib{
   protected BSONThreadListEncoder threadListEncoder;
   protected BSONThreadListDecoder threadListDecoder;
   
-  
-  
   // LOGIN REQUEST
   
   
@@ -327,7 +325,7 @@ public abstract class IJAgoraLib{
   protected JAgoraGraph parseQueryByThreadIDResponse(BasicBSONObject bson) {
     int response = bson.getInt(RESPONSE_FIELD);
     if (response == SERVER_FAIL) {
-      Log.error("[JAgoraLib] Could not get thread (" + bson.getString(REASON_FIELD) + ")");
+      Log.error("[JAgoraLib] Could not get thread by ID (" + bson.getString(REASON_FIELD) + ")");
       return null;
     }
     
@@ -359,7 +357,7 @@ public abstract class IJAgoraLib{
       
       int response = bson.getInt(RESPONSE_FIELD);
       if (response == SERVER_FAIL) {
-         Log.error("[JAgoraLib] Could not get thread (" + bson.getString(REASON_FIELD) + ")");
+         Log.error("[JAgoraLib] Could not get thread list (" + bson.getString(REASON_FIELD) + ")");
       return null;
       }
       ArrayList<JAgoraThread> threads = threadListDecoder.deBSONiseThreadList((BasicBSONObject) bson.get(THREAD_LIST_FIELD));
@@ -379,7 +377,7 @@ public abstract class IJAgoraLib{
   protected JAgoraGraph parseQueryByArgumentIDResponse(BasicBSONObject bson) {
     int response = bson.getInt(RESPONSE_FIELD);
     if (response == SERVER_FAIL) {
-      Log.error("[JAgoraLib] Could not get thread (" + bson.getString(REASON_FIELD) + ")");
+      Log.error("[JAgoraLib] Could not get thread by argument ID(" + bson.getString(REASON_FIELD) + ")");
       return null;
     }
     
@@ -387,5 +385,5 @@ public abstract class IJAgoraLib{
     return g;
   }
   
-  abstract JAgoraGraph getThreadByArgumetID(JAgoraArgumentID id);
+  abstract JAgoraGraph getThreadByArgumentID(JAgoraArgumentID id);
 }

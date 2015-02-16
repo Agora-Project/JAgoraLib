@@ -5,7 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -13,18 +13,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.websocket.ClientEndpointConfig;
-import javax.websocket.ContainerProvider;
-import javax.websocket.DeploymentException;
-import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfig;
-import javax.websocket.MessageHandler;
-import javax.websocket.Session;
-import javax.websocket.WebSocketContainer;
 import org.agora.graph.JAgoraArgumentID;
 import org.agora.graph.JAgoraGraph;
 import org.agora.graph.JAgoraThread;
 import org.agora.logging.Log;
 import org.bson.BasicBSONObject;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.drafts.Draft;
+import org.java_websocket.drafts.Draft_17;
+import org.java_websocket.handshake.ServerHandshake;
 
 /**
  *
@@ -35,38 +32,35 @@ import org.bson.BasicBSONObject;
 public class JAgoraWebsocketLib extends IJAgoraLib {
     
     private final ClientEndpointConfig cec;
-    private Session session;
-    private BlockingQueue<byte[]> messages;
-    private WebSocketContainer client;
+    private final BlockingQueue<byte[]> messages;
+    private URI target;
+    private ClientEndpoint client;
     
-    public JAgoraWebsocketLib() {
+    public JAgoraWebsocketLib(URI target) {
         cec = ClientEndpointConfig.Builder.create().build();
         messages = new LinkedBlockingQueue<>();
-        client = ContainerProvider.getWebSocketContainer();
+        this.target = target;
     }
     
     public DataInputStream getStream() throws InterruptedException {
         return new DataInputStream(new ByteArrayInputStream(messages.poll(10, TimeUnit.SECONDS)));
     }
     
-    public void openConnection(URI target) {
-        try {
-            session = client.connectToServer(new ClientEndpoint(), cec, target);
-        } catch (DeploymentException ex) {
-            Log.error("[JAgoraLib] Could not connect to server: " + target.toString() + ", " + ex.getMessage());
-        } catch (IOException ex) {
-            Log.error("[JAgoraLib] Could not read incoming message");
-        }
+    public void openConnection() {
+        if (client == null || !client.getConnection().isOpen())
+            client = new ClientEndpoint(target, new Draft_17());
     }
     
     @Override
     public boolean login(String user, String password) {
-        if (session == null) {
-            Log.error("[JAgoraLib] Could not login because there was no session open.");
+        openConnection();
+        
+        if (client == null) {
+            Log.error("[JAgoraLib] Could not login because there was no client open.");
             return false;
         }
         
-        boolean success = JAgoraComms.writeBSONObjectToWebSocket(session,
+        boolean success = JAgoraComms.writeBSONObjectToWebSocket(client,
         constructLoginRequest(user, password));
         if (!success) {
             Log.error("[JAgoraLib] Could not send login message.");
@@ -76,7 +70,9 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
         BasicBSONObject response = null;
         try {
             response = JAgoraComms.readBSONObjectFromStream(getStream());
-        } catch (InterruptedException ex) {}
+        } catch (Exception ex) {
+            Log.error("[JAgoraLib] Could not read from stream: " + ex.getMessage());
+        }
         if (response == null) {
             Log.error("[JAgoraLib] Could not read login response.");
             return false;
@@ -98,7 +94,7 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
             return false;
         }
         
-        boolean success = JAgoraComms.writeBSONObjectToWebSocket(session, constructLogoutRequest());
+        boolean success = JAgoraComms.writeBSONObjectToWebSocket(client, constructLogoutRequest());
         if (!success) {
             Log.error("[JAgoraLib] Could not write logout query.");
             return false;
@@ -107,7 +103,9 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
         BasicBSONObject response = null;
         try {
             response = JAgoraComms.readBSONObjectFromStream(getStream());
-        } catch (InterruptedException ex) {}
+        } catch (InterruptedException | IOException ex) {
+            Log.error("[JAgoraLib] Could not read from stream: " + ex.getMessage());
+        } 
         if (response == null) {
             Log.error("[JAgoraLib] Could not read logout response.");
             return false;
@@ -126,7 +124,7 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
 
     @Override
     public boolean isConnected() {
-        return (sessionID != null && session != null && session.isOpen());
+        return (sessionID != null && client != null && client.getConnection().isOpen());
     }
 
     @Override
@@ -137,7 +135,7 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
       return null;
     }
     
-    boolean success = JAgoraComms.writeBSONObjectToWebSocket(session, constructaAddArgumentRequest(content, threadID));
+    boolean success = JAgoraComms.writeBSONObjectToWebSocket(client, constructaAddArgumentRequest(content, threadID));
     if (!success) {
       Log.error("[JAgoraLib] Could not write addArgument query.");
       return null;
@@ -146,7 +144,9 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
     BasicBSONObject response = null;
         try {
             response = JAgoraComms.readBSONObjectFromStream(getStream());
-        } catch (InterruptedException ex) {}
+        } catch (InterruptedException | IOException ex) {
+            
+        } 
         if (response == null) {
             Log.error("[JAgoraLib] Could not read addArgument response.");
             return null;
@@ -168,7 +168,7 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
       return false;
     }
     
-    boolean success = JAgoraComms.writeBSONObjectToWebSocket(session, constructaAddAttackRequest(attacker, defender));
+    boolean success = JAgoraComms.writeBSONObjectToWebSocket(client, constructaAddAttackRequest(attacker, defender));
         if (!success) {
             Log.error("[JAgoraLib] Could not write addAttack query.");
             return false;
@@ -177,7 +177,9 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
         BasicBSONObject response = null;
         try {
             response = JAgoraComms.readBSONObjectFromStream(getStream());
-        } catch (InterruptedException ex) {}
+        } catch (InterruptedException | IOException ex) {
+            Log.error("[JAgoraLib] Could not read from stream: " + ex.getMessage());
+        } 
         if (response == null) {
             Log.error("[JAgoraLib] Could not read addAttack response.");
             return false;
@@ -209,7 +211,7 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
             return false;
         }
 
-        boolean success = JAgoraComms.writeBSONObjectToWebSocket(session, constructEditArgumentRequest(content, id));
+        boolean success = JAgoraComms.writeBSONObjectToWebSocket(client, constructEditArgumentRequest(content, id));
         if (!success) {
             Log.error("[JAgoraLib] Could not write editArgument query.");
             return false;
@@ -218,7 +220,9 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
         BasicBSONObject response = null;
         try {
             response = JAgoraComms.readBSONObjectFromStream(getStream());
-        } catch (InterruptedException ex) {}
+        } catch (InterruptedException | IOException ex) {
+            Log.error("[JAgoraLib] Could not read from stream: " + ex.getMessage());
+        } 
         if (response == null) {
             Log.error("[JAgoraLib] Could not read editArgument response.");
             return false;
@@ -240,7 +244,7 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
             return false;
         }
    
-       boolean success = JAgoraComms.writeBSONObjectToWebSocket(session, constructaAddArgumentVoteRequest(nodeID, voteType));
+       boolean success = JAgoraComms.writeBSONObjectToWebSocket(client, constructaAddArgumentVoteRequest(nodeID, voteType));
        if (!success) {
          Log.error("[JAgoraLib] Could not write addArgumentVote query.");
          return false;
@@ -248,8 +252,10 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
 
        BasicBSONObject response = null;
         try {
-            response = JAgoraComms.readBSONObjectFromWebSocket(getStream());
-        } catch (InterruptedException ex) {}
+            response = JAgoraComms.readBSONObjectFromStream(getStream());
+        } catch (InterruptedException | IOException ex) {
+            Log.error("[JAgoraLib] Could not read from stream: " + ex.getMessage());
+        } 
         if (response == null) {
             Log.error("[JAgoraLib] Could not read addArgumentVote response.");
             return false;
@@ -271,7 +277,7 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
             return false;
         }
  
-        boolean success = JAgoraComms.writeBSONObjectToWebSocket(session, constructaAddAttackVoteRequest(attacker, defender, voteType));
+        boolean success = JAgoraComms.writeBSONObjectToWebSocket(client, constructaAddAttackVoteRequest(attacker, defender, voteType));
         if (!success) {
             Log.error("[JAgoraLib] Could not write addAttack query.");
             return false;
@@ -280,7 +286,9 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
         BasicBSONObject response = null;
         try {
             response = JAgoraComms.readBSONObjectFromStream(getStream());
-        } catch (InterruptedException ex) {}
+        } catch (InterruptedException | IOException ex) {
+            Log.error("[JAgoraLib] Could not read from stream: " + ex.getMessage());
+        } 
         if (response == null) {
             Log.error("[JAgoraLib] Could not read addAttack response.");
             return false;
@@ -297,7 +305,9 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
 
     @Override
     public JAgoraGraph getThreadByID(int threadID) {
-        boolean success = JAgoraComms.writeBSONObjectToWebSocket(session, constructGetThreadByIDRequest(threadID));
+        openConnection();
+        
+        boolean success = JAgoraComms.writeBSONObjectToWebSocket(client, constructGetThreadByIDRequest(threadID));
         if (!success) {
             Log.error("[JAgoraLib] Could not write getThreadByID query.");
             return null;
@@ -305,8 +315,10 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
 
         BasicBSONObject response = null;
         try {
-            response = JAgoraComms.readBSONObjectFromWebSocket(getStream());
-        } catch (InterruptedException ex) {}
+            response = JAgoraComms.readBSONObjectFromStream(getStream());
+        } catch (InterruptedException | IOException ex) {
+            Log.error("[JAgoraLib] Could not read from stream: " + ex.getMessage());
+        } 
         if (response == null) {
             Log.error("[JAgoraLib] Could not read getThreadByID response.");
             return null;
@@ -325,7 +337,9 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
 
     @Override
     public ArrayList<JAgoraThread> getThreadList() {
-        boolean success = JAgoraComms.writeBSONObjectToWebSocket(session, constructGetThreadListRequest());
+        openConnection();
+        
+        boolean success = JAgoraComms.writeBSONObjectToWebSocket(client, constructGetThreadListRequest());
         if (!success) {
             Log.error("[JAgoraLib] Could not write getThreadList query.");
             return null;
@@ -333,10 +347,10 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
 
         BasicBSONObject response = null;
         try {
-            response = JAgoraComms.readBSONObjectFromWebSocket(getStream());
-        } catch (InterruptedException ex) {
-            Logger.getLogger(JAgoraWebsocketLib.class.getName()).log(Level.SEVERE, null, ex);
-        }
+            response = JAgoraComms.readBSONObjectFromStream(getStream());
+        } catch (InterruptedException | IOException ex) {
+            Log.error("[JAgoraLib] Could not read from stream: " + ex.getMessage());
+        } 
         if (response == null) {
             Log.error("[JAgoraLib] Could not read getThreadList response.");
             return null;
@@ -353,8 +367,10 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
     }
 
     @Override
-    public JAgoraGraph getThreadByArgumetID(JAgoraArgumentID id) {
-        boolean success = JAgoraComms.writeBSONObjectToWebSocket(session, constructGetThreadByArgumentIDRequest(id));
+    public JAgoraGraph getThreadByArgumentID(JAgoraArgumentID id) {
+        openConnection();
+        
+        boolean success = JAgoraComms.writeBSONObjectToWebSocket(client, constructGetThreadByArgumentIDRequest(id));
         if (!success) {
             Log.error("[JAgoraLib] Could not write getThreadByID query.");
             return null;
@@ -363,7 +379,9 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
         BasicBSONObject response = null;
         try {
             response = JAgoraComms.readBSONObjectFromStream(getStream());
-        } catch (InterruptedException ex) {}
+        } catch (InterruptedException | IOException ex) {
+            Log.error("[JAgoraLib] Could not read from stream: " + ex.getMessage());
+        } 
         if (response == null) {
             Log.error("[JAgoraLib] Could not read getThreadByID response.");
             return null;
@@ -381,20 +399,34 @@ public class JAgoraWebsocketLib extends IJAgoraLib {
     }
     
     
-    public class ClientEndpoint extends Endpoint{
+    public class ClientEndpoint extends WebSocketClient {
 
-        public ClientEndpoint(){}
+        public ClientEndpoint(URI serverURI, Draft draft) {
+            super(serverURI, draft);
+        }
+
+        @Override
+        public void onOpen(ServerHandshake sh) {}
         
         @Override
-        public void onOpen(Session s, EndpointConfig config) {
-            s.addMessageHandler(new MessageHandler.Whole <byte[]>() {
-
-                @Override
-                public void onMessage(byte[] t) {
-                    messages.add(t);
-                }
-            });
+        public void onMessage(ByteBuffer bytes) {
+            messages.add(bytes.array());
         }
+
+        @Override
+        public void onClose(int i, String string, boolean bln) {
+            
+        }
+
+        @Override
+        public void onError(Exception excptn) {
+            Log.error("lJAgoraLib] WebSocketClient encountered error: " +excptn.getMessage());
+        }
+
+        @Override
+        public void onMessage(String string) {
+            Log.error("lJAgoraLib] WebSocketClient encountered message: " +string);
+            }
         
     }
     
