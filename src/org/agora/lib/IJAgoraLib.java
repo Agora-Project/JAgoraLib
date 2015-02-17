@@ -57,6 +57,17 @@ public abstract class IJAgoraLib{
   protected BSONThreadListEncoder threadListEncoder;
   protected BSONThreadListDecoder threadListDecoder;
   
+  public IJAgoraLib() {
+    userID = -1;
+    sessionID = null;
+      
+    graphEncoder = new BSONGraphEncoder();
+    graphDecoder = new BSONGraphDecoder();
+    
+    threadListEncoder = new BSONThreadListEncoder();
+    threadListDecoder = new BSONThreadListDecoder();
+  }
+  
   // LOGIN REQUEST
   
   

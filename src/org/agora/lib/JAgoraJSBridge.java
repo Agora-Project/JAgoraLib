@@ -63,7 +63,7 @@ public class JAgoraJSBridge extends JApplet {
             //lib = new JAgoraWebsocketLib(new URI("ws://" + getCodeBase().getHost() + ":" + getCodeBase().getPort() + getCodeBase().getPath() + "Websocket/Agora"));
             lib = new JAgoraHTTPLib(new URL(getCodeBase() + "JAgoraHttpServer"));
         } catch (Exception e) {
-            Log.error(e.getMessage());
+            Log.error("[JAgoraJSBridge] Failed to start JAgoraHTTPLib: " + e.getMessage());
         }
     }
 
@@ -83,7 +83,7 @@ public class JAgoraJSBridge extends JApplet {
         try {
             return lib.login(user, password);
         } catch (Exception ex) {
-            Log.error(ex.getMessage());
+            Log.error("[JAgoraJSBridge] Failed to login: " + ex.getMessage());
         }
         return false;
     }
@@ -106,7 +106,7 @@ public class JAgoraJSBridge extends JApplet {
         try {
             return lib.getThreadByArgumentID(id);
         } catch (Exception e) {
-            Log.error(e.getMessage());
+            Log.error("[JAgoraJSBridge] Failed to getArgumentbyID: " + e.getClass().getName());
         } return null;
     }
     

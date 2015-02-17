@@ -76,6 +76,7 @@ public class JAgoraComms {
       } catch (IOException ex) {
           Log.error("[JAgoraComms] Could not read BSON object from HTTP: " + ex.getMessage());
       }
+      Log.error("[JAgoraComms] Could not read BSON object from HTTP");
       return null;
   }
   

@@ -21,6 +21,7 @@ public class JAgoraHTTPLib extends IJAgoraLib {
     private URL target;
 
     public JAgoraHTTPLib(URL target) {
+        super();
         this.target = target;
     }
     
@@ -353,7 +354,7 @@ public class JAgoraHTTPLib extends IJAgoraLib {
       }
 
     @Override
-    JAgoraGraph getThreadByArgumentID(JAgoraArgumentID id) {
+    public JAgoraGraph getThreadByArgumentID(JAgoraArgumentID id) {
         HttpURLConnection connection = openConnection();
     if (connection == null) {
       Log.error("[JAgoraLib] Could not connect because connection could not be opened.");
