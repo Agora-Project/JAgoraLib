@@ -146,6 +146,8 @@ public abstract class IJAgoraLib {
 
     return true;
   }
+  
+  abstract boolean register(String user, String password, String email);
 
   /**
    * Constructs an empty response.

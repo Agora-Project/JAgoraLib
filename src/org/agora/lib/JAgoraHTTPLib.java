@@ -29,7 +29,7 @@ public class JAgoraHTTPLib extends IJAgoraLib {
       connection.setDoOutput(true);
       return connection;
     } catch (IOException ex) {
-      Log.error("[JAgoraLib] HTTP connection failed: " + ex.getMessage());
+      Log.error("[JAgoraHTTPLib] HTTP connection failed: " + ex.getMessage());
     }
     return null;
   }
@@ -38,25 +38,25 @@ public class JAgoraHTTPLib extends IJAgoraLib {
   boolean login(String user, String password) {
     HttpURLConnection connection = openConnection();
     if (connection == null) {
-      Log.error("[JAgoraLib] Could not connect because socket could not be opened.");
+      Log.error("[JAgoraHTTPLib] Could not connect because socket could not be opened.");
       return false;
     }
 
     boolean success = JAgoraComms.writeBSONObjectToHTTPConnection(connection,
             constructLoginRequest(user, password));
     if (!success) {
-      Log.error("[JAgoraLib] Could not send login message.");
+      Log.error("[JAgoraHTTPLib] Could not send login message.");
       return false;
     }
 
     BasicBSONObject response = JAgoraComms.readBSONObjectFromHTTPConnection(connection);
     if (response == null) {
-      Log.error("[JAgoraLib] Could not read login response.");
+      Log.error("[JAgoraHTTPLib] Could not read login response.");
       return false;
     }
     success = parseLoginResponse(response);
     if (!success) {
-      Log.error("[JAgoraLib] Wrong login information.");
+      Log.error("[JAgoraHTTPLib] Wrong login information.");
       return false;
     }
 
@@ -65,38 +65,80 @@ public class JAgoraHTTPLib extends IJAgoraLib {
 //      Log.error("[JAgoraLib] Problems closing login connection.");
 //      return false;
 //    }
-    Log.debug("[JAgoraLib] Successful login for " + user);
+    Log.debug("[JAgoraHTTPLib] Successful login for " + user);
+    return true;
+  }
+  
+  /**
+   * Performs a register request with an Agora server.
+   *
+   * @param user
+   * @param password
+   * @return
+   */
+  public boolean register(String user, String password, String email) {
+    if (!isConnected()) {
+      Log.error("[JAgoraHTTPLib] Registering but isn't connected.");
+      return false;
+    }
+
+    HttpURLConnection connection = openConnection();
+    if (connection == null) {
+      Log.error("[JAgoraHTTPLib] Could not connect because socket could not be opened.");
+      return false;
+    }
+
+    boolean success = JAgoraComms.writeBSONObjectToHTTPConnection(connection, 
+            constructRegisterRequest(user, password, email));
+    if (!success) {
+      Log.error("[JAgoraHTTPLib] Could not write register query.");
+      return false;
+    }
+
+    BasicBSONObject response = JAgoraComms.readBSONObjectFromHTTPConnection(connection);
+    if (response == null) {
+      Log.error("[JAgoraHTTPLib] Could not read register response.");
+      return false;
+    }
+    
+    success = parseRegisterResponse(response);
+    if (!success) {
+      Log.error("[JAgoraHTTPLib] Failed to register. Perhaps a taken username?");
+      return false;
+    }
+    
+    Log.debug("[JAgoraHTTPLib] Successful registration for " + user);
     return true;
   }
 
   @Override
   boolean logout() {
     if (!isConnected()) {
-      Log.error("[JAgoraLib] Logging out but isn't connected.");
+      Log.error("[JAgoraHTTPLib] Logging out but isn't connected.");
       return false;
     }
 
     HttpURLConnection connection = openConnection();
     if (connection == null) {
-      Log.error("[JAgoraLib] Could not connect because socket could not be opened.");
+      Log.error("[JAgoraHTTPLib] Could not connect because socket could not be opened.");
       return false;
     }
 
     boolean success = JAgoraComms.writeBSONObjectToHTTPConnection(connection, constructLogoutRequest());
     if (!success) {
-      Log.error("[JAgoraLib] Could not write logout query.");
+      Log.error("[JAgoraHTTPLib] Could not write logout query.");
       return false;
     }
 
     BasicBSONObject response = JAgoraComms.readBSONObjectFromHTTPConnection(connection);
     if (response == null) {
-      Log.error("[JAgoraLib] Could not read logout response.");
+      Log.error("[JAgoraHTTPLib] Could not read logout response.");
       return false;
     }
 
     success = parseLogoutResponse(response);
     if (!success) {
-      Log.error("[JAgoraLib] Could not logout properly.");
+      Log.error("[JAgoraHTTPLib] Could not logout properly.");
       return false;
     }
 
@@ -114,31 +156,31 @@ public class JAgoraHTTPLib extends IJAgoraLib {
   JAgoraArgumentID addArgument(BasicBSONObject content, int threadID) {
     JAgoraArgumentID ret = null;
     if (!isConnected()) {
-      Log.error("[JAgoraLib] Querying but not connected.");
+      Log.error("[JAgoraHTTPLib] Querying but not connected.");
       return null;
     }
 
     HttpURLConnection connection = openConnection();
     if (connection == null) {
-      Log.error("[JAgoraLib] Could not connect because connection could not be opened.");
+      Log.error("[JAgoraHTTPLib] Could not connect because connection could not be opened.");
       return null;
     }
 
     boolean success = JAgoraComms.writeBSONObjectToHTTPConnection(connection, constructaAddArgumentRequest(content, threadID));
     if (!success) {
-      Log.error("[JAgoraLib] Could not write addArgument query.");
+      Log.error("[JAgoraHTTPLib] Could not write addArgument query.");
       return null;
     }
 
     BasicBSONObject response = JAgoraComms.readBSONObjectFromHTTPConnection(connection);
     if (response == null) {
-      Log.error("[JAgoraLib] Could not read addArgument response.");
+      Log.error("[JAgoraHTTPLib] Could not read addArgument response.");
       return null;
     }
 
     ret = parseAddArgumentResponse(response);
     if (ret == null) {
-      Log.error("[JAgoraLib] Could not addArgument.");
+      Log.error("[JAgoraHTTPLib] Could not addArgument.");
       return null;
     }
 
@@ -148,31 +190,31 @@ public class JAgoraHTTPLib extends IJAgoraLib {
   @Override
   boolean addAttack(JAgoraArgumentID attacker, JAgoraArgumentID defender) {
     if (!isConnected()) {
-      Log.error("[JAgoraLib] Querying but not connected.");
+      Log.error("[JAgoraHTTPLib] Querying but not connected.");
       return false;
     }
 
     HttpURLConnection connection = openConnection();
     if (connection == null) {
-      Log.error("[JAgoraLib] Could not connect because connection could not be opened.");
+      Log.error("[JAgoraHTTPLib] Could not connect because connection could not be opened.");
       return false;
     }
 
     boolean success = JAgoraComms.writeBSONObjectToHTTPConnection(connection, constructaAddAttackRequest(attacker, defender));
     if (!success) {
-      Log.error("[JAgoraLib] Could not write addAttack query.");
+      Log.error("[JAgoraHTTPLib] Could not write addAttack query.");
       return false;
     }
 
     BasicBSONObject response = JAgoraComms.readBSONObjectFromHTTPConnection(connection);
     if (response == null) {
-      Log.error("[JAgoraLib] Could not read addAttack response.");
+      Log.error("[JAgoraHTTPLib] Could not read addAttack response.");
       return false;
     }
 
     success = parseAddAttackResponse(response);
     if (!success) {
-      Log.error("[JAgoraLib] Could not addAttack.");
+      Log.error("[JAgoraHTTPLib] Could not addAttack.");
       return false;
     }
 
@@ -192,31 +234,31 @@ public class JAgoraHTTPLib extends IJAgoraLib {
   @Override
   boolean editArgument(BasicBSONObject content, JAgoraArgumentID id) {
     if (!isConnected()) {
-      Log.error("[JAgoraLib] Querying but not connected.");
+      Log.error("[JAgoraHTTPLib] Querying but not connected.");
       return false;
     }
 
     HttpURLConnection connection = openConnection();
     if (connection == null) {
-      Log.error("[JAgoraLib] Could not connect because connection could not be opened.");
+      Log.error("[JAgoraHTTPLib] Could not connect because connection could not be opened.");
       return false;
     }
 
     boolean success = JAgoraComms.writeBSONObjectToHTTPConnection(connection, constructEditArgumentRequest(content, id));
     if (!success) {
-      Log.error("[JAgoraLib] Could not write editArgument query.");
+      Log.error("[JAgoraHTTPLib] Could not write editArgument query.");
       return false;
     }
 
     BasicBSONObject response = JAgoraComms.readBSONObjectFromHTTPConnection(connection);
     if (response == null) {
-      Log.error("[JAgoraLib] Could not read editArgument response.");
+      Log.error("[JAgoraHTTPLib] Could not read editArgument response.");
       return false;
     }
 
     success = parseEditArgumentResponse(response);
     if (!success) {
-      Log.error("[JAgoraLib] Could not editArgument.");
+      Log.error("[JAgoraHTTPLib] Could not editArgument.");
       return false;
     }
 
@@ -226,31 +268,31 @@ public class JAgoraHTTPLib extends IJAgoraLib {
   @Override
   boolean addArgumentVote(JAgoraArgumentID nodeID, int voteType) {
     if (!isConnected()) {
-      Log.error("[JAgoraLib] Querying but not connected.");
+      Log.error("[JAgoraHTTPLib] Querying but not connected.");
       return false;
     }
 
     HttpURLConnection connection = openConnection();
     if (connection == null) {
-      Log.error("[JAgoraLib] Could not connect because connection could not be opened.");
+      Log.error("[JAgoraHTTPLib] Could not connect because connection could not be opened.");
       return false;
     }
 
     boolean success = JAgoraComms.writeBSONObjectToHTTPConnection(connection, constructaAddArgumentVoteRequest(nodeID, voteType));
     if (!success) {
-      Log.error("[JAgoraLib] Could not write addArgumentVote query.");
+      Log.error("[JAgoraHTTPLib] Could not write addArgumentVote query.");
       return false;
     }
 
     BasicBSONObject response = JAgoraComms.readBSONObjectFromHTTPConnection(connection);
     if (response == null) {
-      Log.error("[JAgoraLib] Could not read addArgumentVote response.");
+      Log.error("[JAgoraHTTPLib] Could not read addArgumentVote response.");
       return false;
     }
 
     success = parseAddArgumentVoteResponse(response);
     if (!success) {
-      Log.error("[JAgoraLib] Could not addArgumentVote.");
+      Log.error("[JAgoraHTTPLib] Could not addArgumentVote.");
       return false;
     }
 
@@ -260,31 +302,31 @@ public class JAgoraHTTPLib extends IJAgoraLib {
   @Override
   boolean addAttackVote(JAgoraArgumentID attacker, JAgoraArgumentID defender, int voteType) {
     if (!isConnected()) {
-      Log.error("[JAgoraLib] Querying but not connected.");
+      Log.error("[JAgoraHTTPLib] Querying but not connected.");
       return false;
     }
 
     HttpURLConnection connection = openConnection();
     if (connection == null) {
-      Log.error("[JAgoraLib] Could not connect because connection could not be opened.");
+      Log.error("[JAgoraHTTPLib] Could not connect because connection could not be opened.");
       return false;
     }
 
     boolean success = JAgoraComms.writeBSONObjectToHTTPConnection(connection, constructaAddAttackVoteRequest(attacker, defender, voteType));
     if (!success) {
-      Log.error("[JAgoraLib] Could not write addAttack query.");
+      Log.error("[JAgoraHTTPLib] Could not write addAttack query.");
       return false;
     }
 
     BasicBSONObject response = JAgoraComms.readBSONObjectFromHTTPConnection(connection);
     if (response == null) {
-      Log.error("[JAgoraLib] Could not read addAttack response.");
+      Log.error("[JAgoraHTTPLib] Could not read addAttack response.");
       return false;
     }
 
     success = parseAddAttackVoteResponse(response);
     if (!success) {
-      Log.error("[JAgoraLib] Could not addAttack.");
+      Log.error("[JAgoraHTTPLib] Could not addAttack.");
       return false;
     }
 
@@ -295,19 +337,19 @@ public class JAgoraHTTPLib extends IJAgoraLib {
   JAgoraGraph getThreadByID(int threadID) {
     HttpURLConnection connection = openConnection();
     if (connection == null) {
-      Log.error("[JAgoraLib] Could not connect because connection could not be opened.");
+      Log.error("[JAgoraHTTPLib] Could not connect because connection could not be opened.");
       return null;
     }
 
     boolean success = JAgoraComms.writeBSONObjectToHTTPConnection(connection, constructGetThreadByIDRequest(threadID));
     if (!success) {
-      Log.error("[JAgoraLib] Could not write getThreadByID query.");
+      Log.error("[JAgoraHTTPLib] Could not write getThreadByID query.");
       return null;
     }
 
     BasicBSONObject response = JAgoraComms.readBSONObjectFromHTTPConnection(connection);
     if (response == null) {
-      Log.error("[JAgoraLib] Could not read getThreadByID response.");
+      Log.error("[JAgoraHTTPLib] Could not read getThreadByID response.");
       return null;
     }
 
@@ -315,7 +357,7 @@ public class JAgoraHTTPLib extends IJAgoraLib {
 
     success = graph != null;
     if (!success) {
-      Log.error("[JAgoraLib] Could not getThreadByID.");
+      Log.error("[JAgoraHTTPLib] Could not getThreadByID.");
       return null;
     }
 
@@ -326,19 +368,19 @@ public class JAgoraHTTPLib extends IJAgoraLib {
   ArrayList<JAgoraThread> getThreadList() {
     HttpURLConnection connection = openConnection();
     if (connection == null) {
-      Log.error("[JAgoraLib] Could not connect because connection could not be opened.");
+      Log.error("[JAgoraHTTPLib] Could not connect because connection could not be opened.");
       return null;
     }
 
     boolean success = JAgoraComms.writeBSONObjectToHTTPConnection(connection, constructGetThreadListRequest());
     if (!success) {
-      Log.error("[JAgoraLib] Could not write getThreadList query.");
+      Log.error("[JAgoraHTTPLib] Could not write getThreadList query.");
       return null;
     }
 
     BasicBSONObject response = JAgoraComms.readBSONObjectFromHTTPConnection(connection);
     if (response == null) {
-      Log.error("[JAgoraLib] Could not read getThreadList response.");
+      Log.error("[JAgoraHTTPLib] Could not read getThreadList response.");
       return null;
     }
 
@@ -346,7 +388,7 @@ public class JAgoraHTTPLib extends IJAgoraLib {
 
     success = threads != null;
     if (!success) {
-      Log.error("[JAgoraLib] Could not getThreadList.");
+      Log.error("[JAgoraHTTPLib] Could not getThreadList.");
       return null;
     }
     return threads;
@@ -356,19 +398,19 @@ public class JAgoraHTTPLib extends IJAgoraLib {
   public JAgoraGraph getThreadByArgumentID(JAgoraArgumentID id) {
     HttpURLConnection connection = openConnection();
     if (connection == null) {
-      Log.error("[JAgoraLib] Could not connect because connection could not be opened.");
+      Log.error("[JAgoraHTTPLib] Could not connect because connection could not be opened.");
       return null;
     }
 
     boolean success = JAgoraComms.writeBSONObjectToHTTPConnection(connection, constructGetThreadByArgumentIDRequest(id));
     if (!success) {
-      Log.error("[JAgoraLib] Could not write getThreadByArgumentID query.");
+      Log.error("[JAgoraHTTPLib] Could not write getThreadByArgumentID query.");
       return null;
     }
 
     BasicBSONObject response = JAgoraComms.readBSONObjectFromHTTPConnection(connection);
     if (response == null) {
-      Log.error("[JAgoraLib] Could not read getThreadByArgumentID response.");
+      Log.error("[JAgoraHTTPLib] Could not read getThreadByArgumentID response.");
       return null;
     }
 
@@ -376,7 +418,7 @@ public class JAgoraHTTPLib extends IJAgoraLib {
 
     success = (graph != null);
     if (!success) {
-      Log.error("[JAgoraLib] Could not getThreadByArgumentID.");
+      Log.error("[JAgoraHTTPLib] Could not getThreadByArgumentID.");
       return null;
     }
 

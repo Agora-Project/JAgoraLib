@@ -8,11 +8,6 @@ import java.util.ArrayList;
 import org.agora.graph.JAgoraGraph;
 import org.agora.graph.JAgoraArgumentID;
 import org.agora.graph.JAgoraThread;
-import static org.agora.lib.IJAgoraLib.ACTION_FIELD;
-import static org.agora.lib.IJAgoraLib.ARGUMENT_ID_FIELD;
-import static org.agora.lib.IJAgoraLib.REASON_FIELD;
-import static org.agora.lib.IJAgoraLib.RESPONSE_FIELD;
-import static org.agora.lib.IJAgoraLib.SERVER_FAIL;
 import org.agora.logging.Log;
 import org.bson.BasicBSONObject;
 
@@ -136,10 +131,10 @@ public class JAgoraLib extends IJAgoraLib {
 
     success = closeConnection(s);
     if (!success) {
-      Log.error("[JAgoraLib] Problems closing login connection.");
+      Log.error("[JAgoraLib] Problems closing registration connection.");
       return false;
     }
-    Log.debug("[JAgoraLib] Successful login for " + user);
+    Log.debug("[JAgoraLib] Successful registration for " + user);
     return true;
   }
 

@@ -24,7 +24,9 @@ import org.java_websocket.handshake.ServerHandshake;
  *
  * @author angle
  */
-public class JAgoraWebsocketLib extends IJAgoraLib {
+
+//This class was never properly finished, and does not yet work corectly.
+public abstract class JAgoraWebsocketLib extends IJAgoraLib {
 
   private final ClientEndpointConfig cec;
   private final BlockingQueue<byte[]> messages;
