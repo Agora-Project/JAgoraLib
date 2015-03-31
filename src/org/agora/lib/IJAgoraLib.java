@@ -23,6 +23,7 @@ public abstract class IJAgoraLib {
   public final static int QUERY_THREAD_LIST_ACTION = 8;
   public final static int EDIT_ARGUMENT_ACTION = 9;
   public final static int QUERY_BY_ARGUMENT_ID_ACTION = 10;
+  public static final int DELETE_ARGUMENT_ACTION = 11;
 
   public final static String USER_ID_FIELD = "id";
   public final static String SESSION_ID_FIELD = "sid";
@@ -255,7 +256,7 @@ public abstract class IJAgoraLib {
 
   abstract boolean addAttack(JAgoraArgumentID attacker, JAgoraArgumentID defender);
 
-  abstract boolean addArgumentWithAttacks(BasicBSONObject content, int threadID, ArrayList<JAgoraArgumentID> defenders);
+  abstract JAgoraArgumentID addArgumentWithAttacks(BasicBSONObject content, int threadID, ArrayList<JAgoraArgumentID> defenders);
 
   //EDIT ARGUMENT
   protected BasicBSONObject constructEditArgumentRequest(BasicBSONObject content, JAgoraArgumentID nodeID) {
@@ -395,4 +396,23 @@ public abstract class IJAgoraLib {
   }
 
   abstract JAgoraGraph getThreadByArgumentID(JAgoraArgumentID id);
+  
+  protected BasicBSONObject constructDeleteArgumentQuery(JAgoraArgumentID id) {
+    BSONGraphEncoder enc = new BSONGraphEncoder();
+    BasicBSONObject bsonRequest = constructBasicSessionRequest();
+    bsonRequest.put(ACTION_FIELD, DELETE_ARGUMENT_ACTION);
+    bsonRequest.put(ARGUMENT_ID_FIELD, enc.BSONiseNodeID(id));
+    return bsonRequest;
+  }
+  
+  protected boolean parseDeleteArgumentResponse(BasicBSONObject bson) {
+    int response = bson.getInt(RESPONSE_FIELD);
+    if (response == SERVER_FAIL) {
+      Log.error("[JAgoraLib] Could not get thread by argument ID(" + bson.getString(REASON_FIELD) + ")");
+      return false;
+    }
+    return true;
+  }
+  
+  abstract boolean deleteArgument(JAgoraArgumentID id);
 }

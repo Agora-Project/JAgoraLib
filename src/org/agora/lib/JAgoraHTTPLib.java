@@ -77,10 +77,6 @@ public class JAgoraHTTPLib extends IJAgoraLib {
    * @return
    */
   public boolean register(String user, String password, String email) {
-    if (!isConnected()) {
-      Log.error("[JAgoraHTTPLib] Registering but isn't connected.");
-      return false;
-    }
 
     HttpURLConnection connection = openConnection();
     if (connection == null) {
@@ -222,13 +218,13 @@ public class JAgoraHTTPLib extends IJAgoraLib {
   }
 
   @Override
-  boolean addArgumentWithAttacks(BasicBSONObject content, int threadID, ArrayList<JAgoraArgumentID> defenders) {
+  JAgoraArgumentID addArgumentWithAttacks(BasicBSONObject content, int threadID, ArrayList<JAgoraArgumentID> defenders) {
     JAgoraArgumentID ref = addArgument(content, threadID);
     for (JAgoraArgumentID defender : defenders) {
       addAttack(ref, defender);
     }
 
-    return (ref != null);
+    return ref;
   }
 
   @Override
@@ -423,6 +419,29 @@ public class JAgoraHTTPLib extends IJAgoraLib {
     }
 
     return graph;
+  }
+
+  @Override
+  boolean deleteArgument(JAgoraArgumentID id) {
+    HttpURLConnection connection = openConnection();
+    if (connection == null) {
+      Log.error("[JAgoraHTTPLib] Could not connect because connection could not be opened.");
+      return false;
+    }
+
+    boolean success = JAgoraComms.writeBSONObjectToHTTPConnection(connection, constructDeleteArgumentQuery(id));
+    if (!success) {
+      Log.error("[JAgoraHTTPLib] Could not write deleteArgument query.");
+      return false;
+    }
+
+    BasicBSONObject response = JAgoraComms.readBSONObjectFromHTTPConnection(connection);
+    if (response == null) {
+      Log.error("[JAgoraHTTPLib] Could not read deleteArgumet response.");
+      return false;
+    }
+
+    return parseDeleteArgumentResponse(response);
   }
 
 }

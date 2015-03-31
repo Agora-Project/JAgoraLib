@@ -249,14 +249,14 @@ public class JAgoraLib extends IJAgoraLib {
 
   //ADD ARGUMENT WITH ATTACKS
   @Override
-  public boolean addArgumentWithAttacks(BasicBSONObject content, int threadID, ArrayList<JAgoraArgumentID> defenders) {
+  public JAgoraArgumentID addArgumentWithAttacks(BasicBSONObject content, int threadID, ArrayList<JAgoraArgumentID> defenders) {
 
     JAgoraArgumentID ref = addArgument(content, threadID);
     for (JAgoraArgumentID defender : defenders) {
       addAttack(ref, defender);
     }
 
-    return (ref != null);
+    return ref;
   }
 
   @Override
@@ -439,11 +439,6 @@ public class JAgoraLib extends IJAgoraLib {
 
   @Override
   public JAgoraGraph getThreadByArgumentID(JAgoraArgumentID id) {
-//    if (!isConnected()) {
-//      Log.error("[JAgoraLib] Querying but not connected.");
-//      return null;
-//    }
-
     Socket s = openConnection();
     if (s == null) {
       Log.error("[JAgoraLib] Could not open connection for thread query.");
@@ -471,5 +466,28 @@ public class JAgoraLib extends IJAgoraLib {
     }
 
     return graph;
+  }
+
+  @Override
+  boolean deleteArgument(JAgoraArgumentID id) {
+     Socket s = openConnection();
+    if (s == null) {
+      Log.error("[JAgoraLib] Could not open connection for deleteArgument query.");
+      return false;
+    }
+
+    boolean success = JAgoraComms.writeBSONObjectToSocket(s, constructDeleteArgumentQuery(id));
+    if (!success) {
+      Log.error("[JAgoraLib] Could not write deleteArgument query.");
+      return false;
+    }
+
+    BasicBSONObject response = JAgoraComms.readBSONObjectFromSocket(s);
+    if (response == null) {
+      Log.error("[JAgoraLib] Could not read deleteArgument response.");
+      return false;
+    }
+
+    return parseDeleteArgumentResponse(response);
   }
 }

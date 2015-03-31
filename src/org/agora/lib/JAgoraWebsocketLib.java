@@ -25,7 +25,7 @@ import org.java_websocket.handshake.ServerHandshake;
  * @author angle
  */
 
-//This class was never properly finished, and does not yet work corectly.
+//This class was never properly finished, and does not yet work correctly.
 public abstract class JAgoraWebsocketLib extends IJAgoraLib {
 
   private final ClientEndpointConfig cec;
@@ -193,13 +193,13 @@ public abstract class JAgoraWebsocketLib extends IJAgoraLib {
   }
 
   @Override
-  public boolean addArgumentWithAttacks(BasicBSONObject content, int threadID, ArrayList<JAgoraArgumentID> defenders) {
+  public JAgoraArgumentID addArgumentWithAttacks(BasicBSONObject content, int threadID, ArrayList<JAgoraArgumentID> defenders) {
     JAgoraArgumentID ref = addArgument(content, threadID);
     for (JAgoraArgumentID defender : defenders) {
       addAttack(ref, defender);
     }
 
-    return (ref != null);
+    return ref;
   }
 
   @Override

@@ -15,11 +15,8 @@ package org.agora.lib;
 //       them to the main applet thread.  That's the reason for all the confusing stuff
 //       in the connect methods... so that connections always happen on the main thread.
 
-import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.*;
 import netscape.javascript.*;
 import org.agora.graph.JAgoraArgument;
@@ -78,6 +75,10 @@ public class JAgoraJSBridge extends JApplet {
     public JAgoraArgumentID findArgument(int id) {
         return new JAgoraArgument(address, id).getID();
     }
+    
+    public boolean register(String user, String password, String email) {
+      return lib.register(user, password, email);
+    }
 
     public boolean logIn(String user, String password) {
         try {
@@ -86,6 +87,12 @@ public class JAgoraJSBridge extends JApplet {
             Log.error("[JAgoraJSBridge] Failed to login: " + ex.getMessage());
         }
         return false;
+    }
+    
+    public void deletePosts(JAgoraArgumentID[] posts) {
+      for (JAgoraArgumentID id : posts) {
+        lib.deleteArgument(id);
+      }
     }
     
     public ArrayList<JAgoraThread> getThreadList() {
@@ -110,7 +117,7 @@ public class JAgoraJSBridge extends JApplet {
         } return null;
     }
     
-    public boolean newArgument(String title, String text, JAgoraArgument[] posts) {
+    public JAgoraArgumentID newArgument(String title, String text, JAgoraArgument[] posts) {
         int threadID = 0;
         if (posts.length > 0) threadID = posts[0].getThreadID();
         BasicBSONObject content = new BasicBSONObject();
