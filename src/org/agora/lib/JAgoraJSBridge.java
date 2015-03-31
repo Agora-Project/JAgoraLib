@@ -89,9 +89,9 @@ public class JAgoraJSBridge extends JApplet {
         return false;
     }
     
-    public void deletePosts(JAgoraArgumentID[] posts) {
-      for (JAgoraArgumentID id : posts) {
-        lib.deleteArgument(id);
+    public void deletePosts(JAgoraArgument[] posts) {
+      for (JAgoraArgument arg : posts) {
+        lib.deleteArgument(arg.getID());
       }
     }
     
