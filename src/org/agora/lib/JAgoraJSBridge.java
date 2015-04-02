@@ -89,6 +89,10 @@ public class JAgoraJSBridge extends JApplet {
         return false;
     }
     
+    public boolean isModerator() {
+      return lib.userType == 2;
+    }
+    
     public void deletePosts(JAgoraArgument[] posts) {
       for (JAgoraArgument arg : posts) {
         lib.deleteArgument(arg.getID());

@@ -26,6 +26,7 @@ public abstract class IJAgoraLib {
   public static final int DELETE_ARGUMENT_ACTION = 11;
 
   public final static String USER_ID_FIELD = "id";
+  public final static String USER_TYPE_FIELD = "utp";
   public final static String SESSION_ID_FIELD = "sid";
   public final static String ACTION_FIELD = "act";
   public final static String USER_FIELD = "usr";
@@ -50,6 +51,7 @@ public abstract class IJAgoraLib {
   public final static int SERVER_FAIL = 1;
 
   protected int userID;
+  protected int userType;
   protected String sessionID;
   protected String hostname;
   protected int port;
@@ -103,6 +105,7 @@ public abstract class IJAgoraLib {
     // Success!
     sessionID = bson.getString(SESSION_ID_FIELD);
     userID = bson.getInt(USER_ID_FIELD);
+    userType = bson.getInt(USER_TYPE_FIELD);
     return true;
   }
 
@@ -408,7 +411,7 @@ public abstract class IJAgoraLib {
   protected boolean parseDeleteArgumentResponse(BasicBSONObject bson) {
     int response = bson.getInt(RESPONSE_FIELD);
     if (response == SERVER_FAIL) {
-      Log.error("[JAgoraLib] Could not get thread by argument ID(" + bson.getString(REASON_FIELD) + ")");
+      Log.error("[JAgoraLib] Could not delete argument (" + bson.getString(REASON_FIELD) + ")");
       return false;
     }
     return true;

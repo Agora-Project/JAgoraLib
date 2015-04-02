@@ -437,7 +437,7 @@ public class JAgoraHTTPLib extends IJAgoraLib {
 
     BasicBSONObject response = JAgoraComms.readBSONObjectFromHTTPConnection(connection);
     if (response == null) {
-      Log.error("[JAgoraHTTPLib] Could not read deleteArgumet response.");
+      Log.error("[JAgoraHTTPLib] Could not read deleteArgument response.");
       return false;
     }
 
