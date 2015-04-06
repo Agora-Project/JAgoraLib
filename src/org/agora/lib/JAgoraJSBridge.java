@@ -1,19 +1,23 @@
-package org.agora.lib;
+/*
 
-// JavaSocketBridge.java
-// by Stephen Ware
-// April 25, 2009
-//
-// Part of the JavaSocketBridge project.
-// This applet provides an interface for using true sockets in JavaScript.
-//
-// Note: You will need to have the Java Plugin archive in your classpath to compile this.
-//       For me, that's C:\Program Files\Java\jre6\lib\plugin.jar
-// Note: You will need to jar this class and Listener.class into a signed jar file if
-//       you want your sockets to access domains other than the one this is running on.
-// Note: Apparently, when you grant permissions to Java applets in Java 6, you only grant
-//       them to the main applet thread.  That's the reason for all the confusing stuff
-//       in the connect methods... so that connections always happen on the main thread.
+Copyright (C) 2015 Agora Communication Corporation
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+package org.agora.lib;
 
 import java.net.URL;
 import java.util.ArrayList;
